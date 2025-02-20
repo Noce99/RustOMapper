@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="windows-1250" ?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.example.org"
+            targetNamespace="http://www.example.org" elementFormDefault="qualified">
+  <xsd:element name="map">
+    <xsd:annotation>
+      <xsd:documentation>A sample element</xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="notes" maxOccurs="1"/>
+        <xsd:element name="georeferencing" maxOccurs="1">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="ref_point" type="ref_point_ct" maxOccurs="1" minOccurs="0"/>
+              <xsd:element name="projected_crs" maxOccurs="1">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="spec" type="spec_ct" maxOccurs="1"/>
+                    <xsd:element name="parameter" maxOccurs="1" minOccurs="0"/>
+                    <xsd:element name="ref_point" type="ref_point_ct" maxOccurs="1" minOccurs="0"/>
+                  </xsd:sequence>
+                  <xsd:attribute name="id" type="xsd:string"/>
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="geographic_crs" maxOccurs="1" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="spec" type="spec_ct" maxOccurs="1"/>
+                    <xsd:element name="ref_point_deg" maxOccurs="1" minOccurs="1">
+                      <xsd:complexType>
+                        <xsd:attribute name="lat" type="xsd:decimal"/>
+                        <xsd:attribute name="lon" type="xsd:decimal"/>
+                      </xsd:complexType>
+                    </xsd:element>
+                  </xsd:sequence>
+                  <xsd:attribute name="id" type="xsd:string"/>
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:sequence>
+            <xsd:attribute name="scale" type="xsd:int"/>
+            <xsd:attribute name="grid_scale_factor" type="xsd:decimal"/>
+            <xsd:attribute name="declination" type="xsd:decimal"/>
+            <xsd:attribute name="grivation" type="xsd:decimal"/>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="colors" maxOccurs="1">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="color" maxOccurs="unbounded" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="spotcolors" maxOccurs="1">
+                      <xsd:complexType>
+                        <xsd:sequence>
+                          <xsd:element name="namedcolor" maxOccurs="1" minOccurs="0"/>
+                          <xsd:element name="component" maxOccurs="unbounded" minOccurs="0">
+                            <xsd:complexType>
+                              <xsd:attribute name="factor" type="xsd:decimal"/>
+                              <xsd:attribute name="spotcolor" type="xsd:int"/>
+                            </xsd:complexType>
+                          </xsd:element>
+                        </xsd:sequence>
+                        <xsd:attribute name="knockout" type="xsd:boolean" default="false"/>
+                      </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="cmyk" maxOccurs="1">
+                      <xsd:complexType>
+                        <xsd:attribute name="method" type="xsd:string"/>
+                      </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="rgb" maxOccurs="1">
+                      <xsd:complexType>
+                        <xsd:attribute name="method" type="xsd:string"/>
+                        <xsd:attribute name="r" type="xsd:decimal"/>
+                        <xsd:attribute name="g" type="xsd:decimal"/>
+                        <xsd:attribute name="b" type="xsd:decimal"/>
+                      </xsd:complexType>
+                    </xsd:element>
+                  </xsd:sequence>
+                  <xsd:attribute name="priority" type="xsd:int"/>
+                  <xsd:attribute name="name" type="xsd:string"/>
+                  <xsd:attribute name="c" type="xsd:decimal"/>
+                  <xsd:attribute name="m" type="xsd:decimal"/>
+                  <xsd:attribute name="y" type="xsd:decimal"/>
+                  <xsd:attribute name="k" type="xsd:decimal"/>
+                  <xsd:attribute name="opacity" type="xsd:decimal"/>
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:sequence>
+            <xsd:attribute name="count" type="xsd:int"/>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="barrier" maxOccurs="2" minOccurs="2">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="symbols" maxOccurs="unbounded" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="symbol" maxOccurs="unbounded" type="symbol_ct"/>
+                  </xsd:sequence>
+                  <xsd:attribute name="count" type="xsd:int"/>
+                  <xsd:attribute name="id" type="xsd:time"/>
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="parts" maxOccurs="1" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="part" maxOccurs="unbounded">
+                      <xsd:complexType>
+                            <xsd:sequence>
+                              <xsd:element name="objects" maxOccurs="1" minOccurs="0">
+                                <xsd:complexType>
+                                  <xsd:sequence>
+                                    <xsd:element name="object" type="object_ct" maxOccurs="unbounded" minOccurs="0"/>
+                                  </xsd:sequence>
+                                  <xsd:attribute name="count" type="xsd:int"/>
+                                </xsd:complexType>
+                              </xsd:element>
+                            </xsd:sequence>
+                        <xsd:attribute name="name" type="xsd:string"/>
+                      </xsd:complexType>
+                    </xsd:element>
+                  </xsd:sequence>
+                  <xsd:attribute name="count" type="xsd:int"/>
+                  <xsd:attribute name="currents" type="xsd:int"/>
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="templates" maxOccurs="1" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="template" maxOccurs="unbounded" minOccurs="0">
+                      <xsd:complexType>
+                        <xsd:choice>
+                          <xsd:element name="crs_spec" maxOccurs="1" minOccurs="1"/>
+                          <xsd:element name="transformations" maxOccurs="1" minOccurs="1">
+                            <xsd:complexType>
+                              <xsd:sequence>
+                                <xsd:element name="transformation" maxOccurs="unbounded">
+                                  <xsd:complexType>
+                                    <xsd:attribute name="role" type="xsd:string"/>
+                                    <xsd:attribute name="x" type="xsd:int"/>
+                                    <xsd:attribute name="y" type="xsd:int"/>
+                                    <xsd:attribute name="scale_x" type="xsd:decimal"/>
+                                    <xsd:attribute name="scale_y" type="xsd:decimal"/>
+                                    <xsd:attribute name="rotation" type="xsd:int"/>
+                                  </xsd:complexType>
+                                </xsd:element>
+                                <xsd:element name="passpoint" maxOccurs="unbounded" minOccurs="0">
+                                  <xsd:complexType>
+                                    <xsd:sequence>
+                                      <xsd:element name="source">
+                                        <xsd:complexType>
+                                          <xsd:sequence>
+                                            <xsd:element name="coord" type="coord_ct" maxOccurs="1"/>
+                                          </xsd:sequence>
+                                        </xsd:complexType>
+                                      </xsd:element>
+                                      <xsd:element name="destination">
+                                        <xsd:complexType>
+                                          <xsd:sequence>
+                                            <xsd:element name="coord" maxOccurs="1" type="coord_ct"/>
+                                          </xsd:sequence>
+                                        </xsd:complexType>
+                                      </xsd:element>
+                                      <xsd:element name="calculated">
+                                        <xsd:complexType>
+                                          <xsd:sequence>
+                                            <xsd:element name="coord" maxOccurs="1" type="coord_ct"/>
+                                          </xsd:sequence>
+                                        </xsd:complexType>
+                                      </xsd:element>
+                                    </xsd:sequence>
+                                    <xsd:attribute name="error" type="xsd:int"/>
+                                  </xsd:complexType>
+                                </xsd:element>
+                                <xsd:element name="matrix" maxOccurs="unbounded">
+                                  <xsd:complexType>
+                                    <xsd:sequence>
+                                      <xsd:element name="element" maxOccurs="unbounded">
+                                        <xsd:complexType>
+                                          <xsd:attribute name="value" type="xsd:decimal"/>
+                                        </xsd:complexType>
+                                      </xsd:element>
+                                    </xsd:sequence>
+                                    <xsd:attribute name="role" type="xsd:string"/>
+                                    <xsd:attribute name="n" type="xsd:int"/>
+                                    <xsd:attribute name="m" type="xsd:int"/>
+                                  </xsd:complexType>
+                                </xsd:element>
+                              </xsd:sequence>
+                              <xsd:attribute name="adjustment_dirty" type="xsd:boolean" default="false"/>
+                              <xsd:attribute name="passpoints" type="xsd:int"/>
+                            </xsd:complexType>
+                          </xsd:element>
+                        </xsd:choice>
+                        <xsd:attribute name="open" type="xsd:boolean"/>
+                        <xsd:attribute name="name" type="xsd:string"/>
+                        <xsd:attribute name="path" type="xsd:string"/>
+                        <xsd:attribute name="relpath" type="xsd:string"/>
+                        <xsd:attribute name="georef" default="false" type="xsd:boolean"/>
+                      </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="defaults" maxOccurs="1" minOccurs="1">
+                      <xsd:complexType>
+                        <xsd:attribute name="use_meters_per_pixel" type="xsd:boolean" default="false"/>
+                        <xsd:attribute name="meters_per_pixel" type="xsd:int"/>
+                        <xsd:attribute name="dpi" type="xsd:int"/>
+                        <xsd:attribute name="scale" type="xsd:int"/>
+                      </xsd:complexType>
+                    </xsd:element>
+                  </xsd:sequence>
+                  <xsd:attribute name="count" type="xsd:int"/>
+                  <xsd:attribute name="first_front_template" type="xsd:int"/>
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="view" maxOccurs="1" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="grid" maxOccurs="1">
+                      <xsd:complexType>
+                        <xsd:attribute name="color" type="xsd:string"/>
+                        <xsd:attribute name="display" type="xsd:int"/>
+                        <xsd:attribute name="alignment" type="xsd:int"/>
+                        <xsd:attribute name="additional_rotation" type="xsd:decimal"/>
+                        <xsd:attribute name="unit" type="xsd:int"/>
+                        <xsd:attribute name="h_spacing" type="xsd:decimal"/>
+                        <xsd:attribute name="v_spacing" type="xsd:decimal"/>
+                        <xsd:attribute name="h_offset" type="xsd:decimal"/>
+                        <xsd:attribute name="v_offset" type="xsd:decimal"/>
+                        <xsd:attribute name="snapping_enabled" type="xsd:boolean"/>
+                      </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="map_view" maxOccurs="1">
+                      <xsd:complexType>
+                        <xsd:sequence>
+                          <xsd:element name="map" maxOccurs="1">
+                            <xsd:complexType>
+                              <xsd:attribute name="opacity" type="xsd:decimal"/>
+                              <xsd:attribute name="visible" type="xsd:boolean"/>
+                            </xsd:complexType>
+                          </xsd:element>
+                          <xsd:element name="templates">
+                            <xsd:complexType>
+                              <xsd:sequence>
+                                <xsd:element name="ref" maxOccurs="unbounded" minOccurs="0">
+                                  <xsd:complexType>
+                                    <xsd:attribute name="template" type="xsd:int"/>
+                                    <xsd:attribute name="visible" type="xsd:boolean"/>
+                                    <xsd:attribute name="opacity" type="xsd:decimal"/>
+                                  </xsd:complexType>
+                                </xsd:element>
+                              </xsd:sequence>
+                              <xsd:attribute name="hidden" type="xsd:boolean"/>
+                              <xsd:attribute name="count" type="xsd:int"/>
+                            </xsd:complexType>
+                          </xsd:element>
+                        </xsd:sequence>
+                        <xsd:attribute name="zoom" type="xsd:decimal"/>
+                        <xsd:attribute name="rotation" type="xsd:decimal"/>
+                        <xsd:attribute name="position_x" type="xsd:decimal"/>
+                        <xsd:attribute name="position_y" type="xsd:decimal"/>
+                        <xsd:attribute name="grid" type="xsd:boolean"/>
+                        <xsd:attribute name="overprinting_simulation_enabled" type="xsd:boolean" default="false"/>
+                      </xsd:complexType>
+                    </xsd:element>
+                  </xsd:sequence>
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="undo" maxOccurs="1" minOccurs="0"/>
+              <xsd:element name="redo" maxOccurs="1" minOccurs="0"/>
+            </xsd:sequence>
+            <xsd:attribute name="version" type="xsd:string"/>
+            <xsd:attribute name="required" type="xsd:string"/>
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:sequence>
+      <xsd:attribute name="version" type="xsd:string"/>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:complexType name="ref_point_ct">
+    <xsd:attribute name="x" type="xsd:decimal"/>
+    <xsd:attribute name="y" type="xsd:decimal"/>
+  </xsd:complexType>
+  <xsd:complexType name="spec_ct">
+    <xsd:attribute name="language" type="xsd:string"/>
+  </xsd:complexType>
+  <xsd:complexType name="symbol_ct">
+    <xsd:sequence>
+      <xsd:element name="description"/>
+      <xsd:choice>
+        <xsd:element name="line_symbol">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="start_symbol" maxOccurs="1" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="symbol" type="symbol_ct"/>
+                  </xsd:sequence>
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="mid_symbol" maxOccurs="1" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="symbol" type="symbol_ct"/>
+                  </xsd:sequence>
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="end_symbol" maxOccurs="1" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="symbol" type="symbol_ct"/>
+                  </xsd:sequence>
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="dash_symbol" maxOccurs="1" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="symbol" type="symbol_ct"/>
+                  </xsd:sequence>
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="borders" maxOccurs="1" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="border" maxOccurs="2" minOccurs="1">
+                      <xsd:complexType>
+                        <xsd:attribute name="color" type="xsd:int"/>
+                        <xsd:attribute name="width" type="xsd:int"/>
+                        <xsd:attribute name="shift" type="xsd:int"/>
+                        <xsd:attribute name="dashed" type="xsd:boolean"/>
+                        <xsd:attribute name="dash_length" type="xsd:int"/>
+                        <xsd:attribute name="break_length" type="xsd:int"/>
+                      </xsd:complexType>
+                    </xsd:element>
+                  </xsd:sequence>
+                  <xsd:attribute name="borders_different" type="xsd:boolean"/>
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:sequence>
+            <xsd:attribute name="color" type="xsd:int"/>
+            <xsd:attribute name="line_width" type="xsd:int"/>
+            <xsd:attribute name="minimum_length" type="xsd:int"/>
+            <xsd:attribute name="join_style" type="xsd:int"/>
+            <xsd:attribute name="cap_style" type="xsd:int"/>
+            <xsd:attribute name="pointed_cap_length" type="xsd:int"/>
+            <xsd:attribute name="dashed" type="xsd:boolean" default="false"/>
+            <xsd:attribute name="segment_length" type="xsd:int"/>
+            <xsd:attribute name="end_length" type="xsd:int"/>
+            <xsd:attribute name="show_at_least_one_symbol" type="xsd:boolean" default="false"/>
+            <xsd:attribute name="minimum_mid_symbol_count" type="xsd:int"/>
+            <xsd:attribute name="minimum_mid_symbol_count_when_closed" type="xsd:int"/>
+            <xsd:attribute name="dash_length" type="xsd:int"/>
+            <xsd:attribute name="break_length" type="xsd:int"/>
+            <xsd:attribute name="dashes_in_group" type="xsd:int"/>
+            <xsd:attribute name="in_group_break_length" type="xsd:int"/>
+            <xsd:attribute name="half_outer_dashes" type="xsd:boolean" default="false"/>
+            <xsd:attribute name="mid_symbols_per_spot" type="xsd:int"/>
+            <xsd:attribute name="mid_symbol_distance" type="xsd:int"/>
+            <xsd:attribute name="suppress_dash_symbol_at_ends" type="xsd:boolean" default="false"/>
+            <xsd:attribute name="scale_dash_symbol" default="true" type="xsd:boolean"/>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="point_symbol">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="element" maxOccurs="unbounded" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="symbol" type="symbol_ct" maxOccurs="1"/>
+                    <xsd:element name="object" type="object_ct" maxOccurs="1"/>
+                  </xsd:sequence>
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:sequence>
+            <xsd:attribute name="rotatable" type="xsd:boolean" default="false"/>
+            <xsd:attribute name="inner_radius" type="xsd:int"/>
+            <xsd:attribute name="inner_color" type="xsd:int"/>
+            <xsd:attribute name="outer_width" type="xsd:int"/>
+            <xsd:attribute name="outer_color" type="xsd:int"/>
+            <xsd:attribute name="elements" type="xsd:int"/>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="area_symbol">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="pattern" maxOccurs="unbounded" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="symbol" type="symbol_ct"/>
+                  </xsd:sequence>
+                  <xsd:attribute name="no_clipping" type="xsd:int" default="0"/>
+                  <xsd:attribute name="offset_along_line" type="xsd:int" use="optional"/>
+                  <xsd:attribute name="point_distance" type="xsd:int" use="optional"/>
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:sequence>
+            <xsd:attribute name="inner_color" type="xsd:int"/>
+            <xsd:attribute name="min_area" type="xsd:int"/>
+            <xsd:attribute name="patterns" type="xsd:int"/>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="text_symbol">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="font">
+                <xsd:complexType>
+                  <xsd:attribute name="family" type="xsd:string"/>
+                  <xsd:attribute name="size" type="xsd:int"/>
+                  <xsd:attribute name="bold" type="xsd:boolean" default="false"/>
+                  <xsd:attribute name="italic" type="xsd:boolean" default="false"/>
+                  <xsd:attribute name="underline" type="xsd:boolean" default="false"/>
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="text">
+                <xsd:complexType>
+                  <xsd:attribute name="color" type="xsd:int"/>
+                  <xsd:attribute name="line_spacing" type="xsd:decimal"/>
+                  <xsd:attribute name="paragraph_spacing" type="xsd:int"/>
+                  <xsd:attribute name="character_spacing" type="xsd:decimal"/>
+                  <xsd:attribute name="kerning" type="xsd:boolean" default="false"/>
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="framing" maxOccurs="1" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:attribute name="color" type="xsd:int"/>
+                  <xsd:attribute name="mode" type="xsd:int"/>
+                  <xsd:attribute name="line_half_width" type="xsd:int"/>
+                  <xsd:attribute name="shadow_x_offset" type="xsd:int"/>
+                  <xsd:attribute name="shadow_y_offset" type="xsd:int"/>
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="line_below" maxOccurs="1" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:attribute name="color" type="xsd:int"/>
+                  <xsd:attribute name="width" type="xsd:int"/>
+                  <xsd:attribute name="distance" type="xsd:int"/>
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="tabs" maxOccurs="1" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="tab"/>
+                  </xsd:sequence>
+                  <xsd:attribute name="count" type="xsd:int"/>
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:sequence>
+            <xsd:attribute name="icon_text" type="xsd:string"/>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="combined_symbol">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="part" maxOccurs="unbounded">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="symbol" maxOccurs="1" minOccurs="0" type="symbol_ct"/>
+                  </xsd:sequence>
+                  <xsd:attribute name="symbol" type="xsd:int"/>
+                  <xsd:attribute name="private" type="xsd:boolean" default="false"/>
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:sequence>
+            <xsd:attribute name="parts" type="xsd:int"/>
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:choice>
+    </xsd:sequence>
+    <xsd:attribute name="type" type="xsd:int"/>
+    <xsd:attribute name="id" type="xsd:int"/>
+    <xsd:attribute name="code" type="xsd:string"/>
+    <xsd:attribute name="name" type="xsd:string"/>
+    <xsd:attribute name="is_helper_symbol" type="xsd:boolean" default="false"/>
+  </xsd:complexType>
+  <xsd:complexType name="object_ct">
+    <xsd:sequence>
+      <xsd:element name="tags" maxOccurs="1" minOccurs="0">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="t" maxOccurs="unbounded">
+              <xsd:complexType>
+                <xsd:attribute name="k" type="xsd:string"/>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="coords">
+        <xsd:complexType>
+          <xsd:attribute name="count" type="xsd:int"/>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="pattern">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="coord" type="coord_ct"/>
+          </xsd:sequence>
+          <xsd:attribute name="type" type="xsd:int" use="optional"/>
+          <xsd:attribute name="angle" type="xsd:int" use="optional"/>
+          <xsd:attribute name="rotatable" type="xsd:boolean" default="false"/>
+          <xsd:attribute name="line_spacing" type="xsd:int" use="optional"/>
+          <xsd:attribute name="line_offset" type="xsd:int" use="optional"/>
+          <xsd:attribute name="color" type="xsd:int" use="optional"/>
+          <xsd:attribute name="line_width" type="xsd:int" use="optional"/>
+          <xsd:attribute name="rotation" type="xsd:int" use="optional"/>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="text" maxOccurs="1" minOccurs="0"/>
+    </xsd:sequence>
+    <xsd:attribute name="type" type="xsd:int"/>
+    <xsd:attribute name="symbol" type="xsd:int"/>
+    <xsd:attribute name="rotation" type="xsd:decimal" default="0"/>
+    <xsd:attribute name="h_align" type="xsd:int"/>
+    <xsd:attribute name="v_align" type="xsd:int"/>
+  </xsd:complexType>
+  <xsd:complexType name="coord_ct">
+    <xsd:attribute name="x" type="xsd:int"/>
+    <xsd:attribute name="y" type="xsd:int"/>
+  </xsd:complexType>
+</xsd:schema>
