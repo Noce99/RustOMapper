@@ -1,39 +1,51 @@
 use std::fmt;
 use quick_xml::events::Event;
 use quick_xml::Reader;
+use std::cell::RefCell;
+use std::rc::{Rc, Weak};
+
 use crate::map::symbols::SymbolsBag;
 
-pub struct Object{
-    name : String,
-    attributes : Option<Vec<(String, String)>>, // Warning: Option on a Vec, why not like children?
-    children : Vec<Object>,
-    indentation_level : i16,
-    inner_text: Option<String>,
+pub struct Node {
+    pub name : String,
+    pub attributes : Vec<(String, String)>,
+    pub children : RefCell<Vec<Rc<Node>>>,
+    pub parent: RefCell<Weak<Node>>,
+    pub indentation_level : i16,
+    pub inner_text: RefCell<Option<String>>,
 }
 
-impl Object{
-    pub fn new(name : String, attributes : Option<Vec<(String, String)>>, indentation_level : i16) -> Object{
-        Object{
-            name,
-            attributes,
-            children: vec![],
-            indentation_level,
-            inner_text: None,
+impl Node {
+    pub fn new(name : String, attributes : Vec<(String, String)>, indentation_level : i16, parent_option: Option<Weak<Node>>) -> Rc<Node> {
+        let parent: Weak<Node>;
+        match parent_option{
+            None => {parent = Weak::new()}
+            Some(a_parent) => {parent = a_parent}
         }
+        Rc::new(
+            Node {
+                name,
+                attributes,
+                parent: RefCell::new(parent),
+                children: RefCell::new(vec![]),
+                indentation_level,
+                inner_text: RefCell::new(None),
+            }
+        )
     }
-    pub fn set_inner_text(&mut self, inner_text : String){
-        self.inner_text = Some(inner_text);
+    pub fn set_inner_text(&self, inner_text : String){
+        *self.inner_text.borrow_mut() = Some(inner_text);
     }
-    pub fn continue_xml_exploration(&mut self, reader : &mut Reader<std::io::BufReader<std::fs::File>>){
+    pub fn continue_xml_exploration(self: & Rc<Self>, reader : &mut Reader<std::io::BufReader<std::fs::File>>){
         let mut buf = Vec::new();
         loop {
             match reader.read_event_into(&mut buf).unwrap() {
                 Event::Eof => break,
                 Event::Start(e) => {
-                    self.children.push(explore_a_start(e, self.indentation_level));
+                    self.children.borrow_mut().push(explore_a_start(e, self.indentation_level, Some(Rc::downgrade(self))));
                     buf.clear();
-                    let last_child_index = self.children.len() - 1;
-                    self.children[last_child_index].continue_xml_exploration(reader);
+                    let last_child_index = self.children.borrow().len() - 1;
+                    self.children.borrow_mut()[last_child_index].continue_xml_exploration(reader);
                 }
                 Event::Text(e) => {
                     let inner_text = e.unescape().unwrap();
@@ -51,10 +63,7 @@ impl Object{
             buf.clear();
         }
     }
-    pub fn get_child(& self) -> &Vec<Object>{
-        &self.children
-    }
-    pub fn get_name(&self) -> String{
+    pub fn get_name(& self) -> String{
         self.name.clone()
     }
 
@@ -65,7 +74,7 @@ impl Object{
     }
 }
 
-impl fmt::Display for Object {
+impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut indentation: String = String::new();
         for _i in 0..self.indentation_level{
@@ -76,19 +85,19 @@ impl fmt::Display for Object {
         output.push_str(&self.name);
         output.push(' ');
         output.push('(');
-        for (name, value) in self.attributes.as_ref().unwrap(){ // Warning: What if self.attributes is None? (Panic?)
+        for (name, value) in &self.attributes{
             output.push_str(&format!("{}:\"{}\", ", name, value));
         }
         output.push(')');
         output.push(' ');
         output.push('{');
-        match &self.inner_text {
+        match self.inner_text.borrow_mut().as_ref() {
             None => {}
             Some(a_text) => {output.push_str(a_text);}
         }
         output.push('}');
         output.push('\n');
-        for child in &self.children{
+        for child in self.children.borrow().iter(){
             output.push_str(&format!("{}", child));
         }
         write!(f, "{output}")
@@ -96,7 +105,8 @@ impl fmt::Display for Object {
 }
 
 fn explore_a_start(e : quick_xml::events::BytesStart,
-                   last_indentation : i16) -> Object {
+                   last_indentation : i16,
+                   parent_option: Option<Weak<Node>>) -> Rc<Node> {
     let name = String::from(std::str::from_utf8(e.name().into_inner()).unwrap());
     let mut attributes: Vec<(String, String)> = Vec::new();
     for attr in e.attributes() {
@@ -105,10 +115,11 @@ fn explore_a_start(e : quick_xml::events::BytesStart,
         let attribute_value = String::from_utf8(real_attr.value.to_vec()).unwrap();
         attributes.push((attribute_name, attribute_value));
     }
-    Object::new(
+    Node::new(
         name,
-        Some(attributes),
-        last_indentation+1
+        attributes,
+        last_indentation+1,
+        parent_option,
     )
 }
 
@@ -137,7 +148,7 @@ impl fmt::Display for StructTypes{
     }
 }
 
-fn update_or_create_new_struct_type(an_object: & Object, all_struct_types: &mut Vec<StructTypes>){
+fn update_or_create_new_struct_type(an_object: &Node, all_struct_types: &mut Vec<StructTypes>){
     let mut found_struct = false;
     // (1) Let's start searching for an_object inside all_struct_types
     for i in 0..all_struct_types.len(){
@@ -146,43 +157,38 @@ fn update_or_create_new_struct_type(an_object: & Object, all_struct_types: &mut 
             // (2)  If we found that the object already exist inside all_struct_types, we have to
             //      compare both the attribute names and values.
             //      Let's iterate over all the attributes of the object that we are searching.
-            match &an_object.attributes {
-                Some(attributes) => {
-                    for (attribute_name, attribute_value) in attributes.iter(){
-                        let mut found_attribute = false;
-                        // (3)  Let's compare all the attribute of our object with all the struct that
-                        //      matched attributes.
-                        for (ii, struct_attribute_name) in all_struct_types[i].attributes.iter().enumerate() {
-                            // (4)  If the struct that matched and our object both have the same attribute
-                            //      name. Let's iterate over that attribute values.
-                            if attribute_name == struct_attribute_name{
-                                found_attribute = true;
-                                let mut found_values = false;
-                                // (5) Let's compare all the attribute values of the matched struct with
-                                //     the value of the attribute that matched.
-                                for struct_attribute_values in all_struct_types[i].attribute_values[ii].iter(){
-                                    // (6) If the value is already there we do not need to add it.
-                                    if attribute_value == struct_attribute_values{
-                                        found_values = true;
-                                        break;
-                                    }
-                                }
-                                // (7) If it's not there we should add it.
-                                if !found_values{
-                                    all_struct_types[i].attribute_values[ii].push(String::from(attribute_value));
-                                }
+            for (attribute_name, attribute_value) in an_object.attributes.iter(){
+                let mut found_attribute = false;
+                // (3)  Let's compare all the attribute of our object with all the struct that
+                //      matched attributes.
+                for (ii, struct_attribute_name) in all_struct_types[i].attributes.iter().enumerate() {
+                    // (4)  If the struct that matched and our object both have the same attribute
+                    //      name. Let's iterate over that attribute values.
+                    if attribute_name == struct_attribute_name{
+                        found_attribute = true;
+                        let mut found_values = false;
+                        // (5) Let's compare all the attribute values of the matched struct with
+                        //     the value of the attribute that matched.
+                        for struct_attribute_values in all_struct_types[i].attribute_values[ii].iter(){
+                            // (6) If the value is already there we do not need to add it.
+                            if attribute_value == struct_attribute_values{
+                                found_values = true;
                                 break;
                             }
                         }
-                        // (8)  If the attribute name was not present in the matched struct attributes we
-                        //      should add it.
-                        if !found_attribute{
-                            all_struct_types[i].attributes.push(String::from(attribute_name));
-                            all_struct_types[i].attribute_values.push(Vec::from([attribute_value.clone()]));
+                        // (7) If it's not there we should add it.
+                        if !found_values{
+                            all_struct_types[i].attribute_values[ii].push(String::from(attribute_value));
                         }
+                        break;
                     }
-                },
-                None => {}
+                }
+                // (8)  If the attribute name was not present in the matched struct attributes we
+                //      should add it.
+                if !found_attribute{
+                    all_struct_types[i].attributes.push(String::from(attribute_name));
+                    all_struct_types[i].attribute_values.push(Vec::from([attribute_value.clone()]));
+                }
             }
             break;
         }
@@ -191,14 +197,9 @@ fn update_or_create_new_struct_type(an_object: & Object, all_struct_types: &mut 
     if !found_struct{
         let mut attributes: Vec<String> = Vec::new();
         let mut attribute_values: Vec<Vec<String>> = Vec::new();
-        match & an_object.attributes {
-            Some(an_object_attributes) => {
-                for (attribute_name, attribute_value) in an_object_attributes.iter() {
-                    attributes.push(String::from(attribute_name));
-                    attribute_values.push(Vec::from([attribute_value.clone()]));
-                }
-            },
-            None => {}
+        for (attribute_name, attribute_value) in an_object.attributes.iter() {
+            attributes.push(String::from(attribute_name));
+            attribute_values.push(Vec::from([attribute_value.clone()]));
         }
         all_struct_types.push(StructTypes{
             name: an_object.get_name(),
@@ -207,12 +208,12 @@ fn update_or_create_new_struct_type(an_object: & Object, all_struct_types: &mut 
         })
     }
     // (10) Let's check all the children of our object!
-    for child in an_object.get_child(){
+    for child in an_object.children.borrow().iter(){
         update_or_create_new_struct_type(child, all_struct_types);
     }
 }
 
-pub fn read_o_mapper_file(file_path: &str) -> Object{
+pub fn read_o_mapper_file(file_path: &str) -> Rc<Node> {
     // (1) Let's open the file
     let mut reader = Reader::from_file(file_path)
         .expect("Failed to open the map file!");
@@ -227,7 +228,7 @@ pub fn read_o_mapper_file(file_path: &str) -> Object{
             .expect("Error while reading an XML event! :-(");
         match event {
             Event::Start(e) => {
-                bigger_ancestor = explore_a_start(e, - 1);
+                bigger_ancestor = explore_a_start(e, - 1, None);
                 bigger_ancestor.continue_xml_exploration(& mut reader);
                 break
             }
