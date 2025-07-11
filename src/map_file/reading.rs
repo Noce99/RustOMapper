@@ -76,6 +76,33 @@ impl Node {
         update_or_create_new_struct_type(& self, &mut struct_types);
         struct_types
     }
+
+    pub fn search_attribute_by_name(& self, name_to_search: &str) -> Option<String>{
+        for (name, value) in &self.attributes{
+            if name == name_to_search{
+                return Some(value.clone());
+            }
+        }
+        None
+    }
+
+    pub fn search_child_by_name(& self, name_to_search: &str) -> Option<Rc<Node>>{
+        let mut result_of_the_search: Option<Rc<Node>> = None;
+        let mut counter: usize = 0;
+        for child in self.children.borrow().iter(){
+            if child.name == name_to_search {
+                result_of_the_search = Some(self.children.borrow()[counter].clone());
+            }else if child.name == "barrier" {
+                let result_of_searching_inside_a_barrier = child.search_child_by_name(name_to_search);
+                match result_of_searching_inside_a_barrier {
+                    None => {}
+                    Some(a_node) => {result_of_the_search = Some(a_node)}
+                }
+            }
+            counter += 1;
+        }
+        result_of_the_search
+    }
 }
 
 impl fmt::Display for Node {

@@ -1,15 +1,15 @@
 use crate::map::symbols::Symbol;
 
-pub struct AreaSymbol{
+pub struct TextSymbol{
     id: u32,
     code: String,
     name: String,
     description: String,
 }
 
-impl AreaSymbol{
+impl TextSymbol{
     pub fn new(id:u32, code:String, name:String, description:String) -> Self{
-        AreaSymbol{
+        TextSymbol{
             id,
             code,
             name,
@@ -18,12 +18,12 @@ impl AreaSymbol{
     }
 }
 
-impl Symbol for AreaSymbol{
+impl Symbol for TextSymbol{
     fn render(&self) {
         todo!()
     }
 
     fn show(&self) -> String{
-        format!("{} [Area Symbol] ({})", self.name, self.id)
+        format!("{} [Text Symbol] ({})", self.name, self.id)
     }
 }
