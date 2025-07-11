@@ -6,9 +6,9 @@ use crate::map_file::explorer::explore_children;
 
 
 fn main() {
-    let a_map = read_o_mapper_file("Maps/emptymap.omap");
+    let a_map = read_o_mapper_file("Maps/BOLOLECCHIO_ISSPROM_2024_10_25.omap");
 
-    print!("{}", a_map);
+    // print!("{}", a_map);
     explore_children(a_map);
 
     /*

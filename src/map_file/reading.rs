@@ -42,10 +42,14 @@ impl Node {
             match reader.read_event_into(&mut buf).unwrap() {
                 Event::Eof => break,
                 Event::Start(e) => {
-                    self.children.borrow_mut().push(explore_a_start(e, self.indentation_level, Some(Rc::downgrade(self))));
+                    self.children.borrow_mut().push(explore_a_start(&e, self.indentation_level, Some(Rc::downgrade(self))));
                     buf.clear();
                     let last_child_index = self.children.borrow().len() - 1;
                     self.children.borrow_mut()[last_child_index].continue_xml_exploration(reader);
+                }
+                Event::Empty(e) => {
+                    self.children.borrow_mut().push(explore_a_start(&e, self.indentation_level, Some(Rc::downgrade(self))));
+                    buf.clear();
                 }
                 Event::Text(e) => {
                     let inner_text = e.unescape().unwrap();
@@ -104,7 +108,7 @@ impl fmt::Display for Node {
     }
 }
 
-fn explore_a_start(e : quick_xml::events::BytesStart,
+fn explore_a_start(e : & quick_xml::events::BytesStart,
                    last_indentation : i16,
                    parent_option: Option<Weak<Node>>) -> Rc<Node> {
     let name = String::from(std::str::from_utf8(e.name().into_inner()).unwrap());
@@ -228,7 +232,7 @@ pub fn read_o_mapper_file(file_path: &str) -> Rc<Node> {
             .expect("Error while reading an XML event! :-(");
         match event {
             Event::Start(e) => {
-                bigger_ancestor = explore_a_start(e, - 1, None);
+                bigger_ancestor = explore_a_start(&e, - 1, None);
                 bigger_ancestor.continue_xml_exploration(& mut reader);
                 break
             }
