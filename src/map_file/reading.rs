@@ -2,7 +2,10 @@ use std::fmt;
 use quick_xml::events::Event;
 use quick_xml::Reader;
 use std::cell::RefCell;
+use std::fs::File;
+use std::io::BufReader;
 use std::rc::{Rc, Weak};
+use std::time::Instant;
 
 use crate::map::symbols::SymbolsBag;
 
@@ -16,7 +19,12 @@ pub struct Node {
 }
 
 impl Node {
-    pub fn new(name : String, attributes : Vec<(String, String)>, indentation_level : i16, parent_option: Option<Weak<Node>>) -> Rc<Node> {
+    pub fn new(
+        name : String,
+        attributes : Vec<(String, String)>,
+        indentation_level : i16,
+        parent_option: Option<Weak<Node>>
+    ) -> Rc<Self> {
         let parent: Weak<Node>;
         match parent_option{
             None => {parent = Weak::new()}
@@ -33,22 +41,71 @@ impl Node {
             }
         )
     }
+    pub fn node_from_file(file_path: &str) -> Option<Rc<Self>> {
+        // (1) Let's read the file
+        println!("I'm going to open: {file_path}");
+        let start_file_reading_time = Instant::now();
+        let reader_result = Reader::from_file(file_path);
+        let mut reader: Reader<BufReader<File>>;
+        match reader_result{
+            Ok(a_reader) => {reader = a_reader;}
+            Err(e) => {
+                eprintln!("Error while trying to read {file_path}:\n\t{e}");
+                return None;
+            }
+        }
+        // (2) Let's remove unwanted white spaces
+        reader.config_mut().trim_text(true); // Remove white space!
+
+        // (3) Let's create a new node
+        let bigger_ancestor = Rc::new(Self{
+            name: "map_node".to_string(),
+            attributes: vec![("path".to_string(), file_path.to_string())],
+            children: RefCell::new(vec![]),
+            parent: RefCell::new(Default::default()),
+            indentation_level: 0,
+            inner_text: RefCell::new(None),
+        });
+        // (4) Let's start populating the Node reading the xml
+        bigger_ancestor.continue_xml_exploration(& mut reader);
+        // (5) Let's debug the time needed to read the xml
+        let file_reading_time = start_file_reading_time.elapsed();
+        let file_reading_time_s = file_reading_time.as_secs();
+        let file_reading_time_ms = file_reading_time.subsec_millis();
+        println!("Built the node tree from the xml file in {file_reading_time_s} s and \
+         {file_reading_time_ms} ms.");
+        Some(bigger_ancestor)
+    }
     pub fn set_inner_text(&self, inner_text : String){
         *self.inner_text.borrow_mut() = Some(inner_text);
     }
-    pub fn continue_xml_exploration(self: & Rc<Self>, reader : &mut Reader<std::io::BufReader<std::fs::File>>){
+    fn continue_xml_exploration(self: & Rc<Self>, reader : &mut Reader<BufReader<File>>){
         let mut buf = Vec::new();
         loop {
             match reader.read_event_into(&mut buf).unwrap() {
                 Event::Eof => break,
                 Event::Start(e) => {
-                    self.children.borrow_mut().push(explore_a_start(&e, self.indentation_level, Some(Rc::downgrade(self))));
+                    self.children.borrow_mut()
+                        .push(
+                            self.explore_a_start(
+                                &e,
+                                self.indentation_level,
+                                Some(Rc::downgrade(self))
+                            )
+                        );
                     buf.clear();
                     let last_child_index = self.children.borrow().len() - 1;
                     self.children.borrow_mut()[last_child_index].continue_xml_exploration(reader);
                 }
                 Event::Empty(e) => {
-                    self.children.borrow_mut().push(explore_a_start(&e, self.indentation_level, Some(Rc::downgrade(self))));
+                    self.children.borrow_mut()
+                        .push(
+                            self.explore_a_start(
+                                &e,
+                                self.indentation_level,
+                                Some(Rc::downgrade(self))
+                            )
+                        );
                     buf.clear();
                 }
                 Event::Text(e) => {
@@ -67,6 +124,27 @@ impl Node {
             buf.clear();
         }
     }
+
+    fn explore_a_start(self: & Rc<Self>,
+                       e : & quick_xml::events::BytesStart,
+                       last_indentation : i16,
+                       parent_option: Option<Weak<Node>>) -> Rc<Node> {
+        let name = String::from(std::str::from_utf8(e.name().into_inner()).unwrap());
+        let mut attributes: Vec<(String, String)> = Vec::new();
+        for attr in e.attributes() {
+            let real_attr = attr.unwrap();
+            let attribute_name = String::from(std::str::from_utf8(real_attr.key.into_inner()).unwrap());
+            let attribute_value = String::from_utf8(real_attr.value.to_vec()).unwrap();
+            attributes.push((attribute_name, attribute_value));
+        }
+        Node::new(
+            name,
+            attributes,
+            last_indentation+1,
+            parent_option,
+        )
+    }
+
     pub fn get_name(& self) -> String{
         self.name.clone()
     }
@@ -133,25 +211,6 @@ impl fmt::Display for Node {
         }
         write!(f, "{output}")
     }
-}
-
-fn explore_a_start(e : & quick_xml::events::BytesStart,
-                   last_indentation : i16,
-                   parent_option: Option<Weak<Node>>) -> Rc<Node> {
-    let name = String::from(std::str::from_utf8(e.name().into_inner()).unwrap());
-    let mut attributes: Vec<(String, String)> = Vec::new();
-    for attr in e.attributes() {
-        let real_attr = attr.unwrap();
-        let attribute_name = String::from(std::str::from_utf8(real_attr.key.into_inner()).unwrap());
-        let attribute_value = String::from_utf8(real_attr.value.to_vec()).unwrap();
-        attributes.push((attribute_name, attribute_value));
-    }
-    Node::new(
-        name,
-        attributes,
-        last_indentation+1,
-        parent_option,
-    )
 }
 
 #[derive(Debug)]
@@ -242,34 +301,5 @@ fn update_or_create_new_struct_type(an_object: &Node, all_struct_types: &mut Vec
     for child in an_object.children.borrow().iter(){
         update_or_create_new_struct_type(child, all_struct_types);
     }
-}
-
-pub fn read_o_mapper_file(file_path: &str) -> Rc<Node> {
-    // (1) Let's open the file
-    let mut reader = Reader::from_file(file_path)
-        .expect("Failed to open the map file!");
-    // (2) Let's remove unwanted white spaces
-    reader.config_mut().trim_text(true); // Remove white space!
-
-    // (3) Let's start reading events!
-    let mut buf = Vec::new();
-    let mut bigger_ancestor;
-    loop {
-        let event = reader.read_event_into(& mut buf)
-            .expect("Error while reading an XML event! :-(");
-        match event {
-            Event::Start(e) => {
-                bigger_ancestor = explore_a_start(&e, - 1, None);
-                bigger_ancestor.continue_xml_exploration(& mut reader);
-                break
-            }
-            _ => continue,
-        };
-    }
-    buf.clear();
-    bigger_ancestor
-    /*
-    I want this function to return a SymbolsBag!
-     */
 }
 
