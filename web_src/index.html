@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maps Selection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: #f5f5f5;
+            position: relative;
+        }
+
+        .title {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-bottom: 140px;
+        }
+
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+
+        .map-button {
+            padding: 15px 30px;
+            font-size: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+
+        .map-button:hover {
+            background-color: #9f20c1;
+        }
+
+        .log-console {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            height: 120px;
+            overflow-y: auto;
+            font-family: monospace;
+            border-top: 3px solid #cf0606;
+        }
+
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 5px;
+            border-bottom: 1px solid #444;
+        }
+    </style>
+</head>
+<body>
+<div class="content">
+    <div class="title">MAPS:</div>
+    <div class="buttons-container" id="mapsContainer">
+    </div>
+</div>
+
+<div class="log-console" id="logConsole">
+    <div class="log-entry">Log initialized...</div>
+</div>
+
+<script>
+    let socket;
+
+    function addMapButtons(mapPaths) {
+        const container = document.getElementById('mapsContainer');
+
+        container.innerHTML = '';
+
+        mapPaths.forEach(mapPath => {
+            const button = document.createElement('button');
+            button.className = 'map-button';
+            button.textContent = mapPath.split('/').pop();
+            button.title = mapPath;
+
+            button.addEventListener('click', () => ask_for_map(mapPath));
+
+            container.appendChild(button);
+        });
+    }
+
+    function connectWebSocket() {
+        let server_ip = 'ws://127.0.0.1:1999';
+        socket = new WebSocket(server_ip);
+
+        socket.onopen = function(_) {
+            logMessage(`Connected to server ${server_ip}`);
+            ask_for_maps_path();
+        };
+
+        socket.onmessage = function(event) {
+            try {
+                let message_from_server = JSON.parse(event.data);
+                logMessage(`Received a valid Json Message from Server. Response Type: ${message_from_server.response_type}`);
+                if (message_from_server.response_type === "get_maps_path"){
+                    logMessage(`From Server: ${message_from_server.paths}`);
+                    addMapButtons(message_from_server.paths);
+                }else if (message_from_server.response_type === "unknown_request"){
+                    logMessage(`From Server: Unknown request ${message_from_server.request}!`);
+                }else if (message_from_server.response_type === "error"){
+                    logMessage(`From Server: Error: ${message_from_server.error}`);
+                }else if (message_from_server.response_type === "map") {
+                    logMessage(`From Server: Colors: ${message_from_server.colors}`);
+                    logMessage(`From Server: Symbols: ${message_from_server.symbols}`);
+                }
+            } catch (e) {
+                logMessage(`Received an INVALID Json Message from Server. ${e}`);
+            }
+        };
+
+        socket.onclose = function(event) {
+            if (event.wasClean) {
+                logMessage(`Connection closed cleanly, code=${event.code}, reason=${event.reason}\n`);
+                // connectWebSocket();
+            } else {
+                logMessage("Connection Died!");
+                // connectWebSocket();
+            }
+        };
+
+        socket.onerror = function(error) {
+            logMessage(`WebSocket Error: ${error.message}`);
+            if (socket.readyState !== WebSocket.OPEN) {
+                // connectWebSocket();
+            }
+        };
+    }
+
+    function ask_for_maps_path(){
+        const jsonAskMaps =JSON.stringify({
+            request: "get_maps_path",
+            content: ""
+        });
+
+        try{
+            logMessage("Asked for maps path!");
+            socket.send(jsonAskMaps);
+        }catch (e){
+            logMessage(`${e.name} -> ${e.message}`);
+        }
+    }
+
+    function ask_for_map(map_path){
+        const jsonAskMap =JSON.stringify({
+            request: "get_map",
+            content: map_path
+        });
+
+        try{
+            logMessage(`Asked for map ${map_path}`);
+            socket.send(jsonAskMap);
+        }catch (e){
+            logMessage(`${e.name} -> ${e.message}`);
+        }
+    }
+
+    function logMessage(message) {
+        const logConsole = document.getElementById('logConsole');
+        const logEntry = document.createElement('div');
+        logEntry.className = 'log-entry';
+
+        const now = new Date();
+        const timestamp = now.toLocaleTimeString();
+        logEntry.textContent = `[${timestamp}] ${message}`;
+
+        logConsole.appendChild(logEntry);
+
+        logConsole.scrollTop = logConsole.scrollHeight;
+    }
+
+    //const exampleMaps = ["Forest", "Desert", "City", "Dungeon", "Mountain", "Beach", "Volcano", "Castle", "Cave", "Island"];
+    //addMapButtons(exampleMaps);
+
+    logMessage("Application started");
+    connectWebSocket();
+</script>
+</body>
+</html>

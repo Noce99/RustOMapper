@@ -4,11 +4,11 @@ use crate::map::symbols::geometric_shape::{Annulus, GeometricShape};
 use crate::map_file::reading::Node;
 
 pub struct PunctualSymbol{
-    id: u32,
-    code: String,
-    name: String,
-    description: String,
-    geometric_shapes: Vec<Box<dyn GeometricShape>>,
+    pub id: u32,
+    pub code: String,
+    pub name: String,
+    pub description: String,
+    pub geometric_shapes: Vec<Box<dyn GeometricShape>>,
 }
 
 impl PunctualSymbol{

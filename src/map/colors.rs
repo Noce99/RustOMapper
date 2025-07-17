@@ -3,11 +3,11 @@ use std::rc::Rc;
 
 
 pub struct Color {
-    priority: u32,
-    name: String,
-    r:  u8,
-    g:  u8,
-    b:  u8,
+    pub priority: u32,
+    pub name: String,
+    pub r:  u8,
+    pub g:  u8,
+    pub b:  u8,
 }
 
 pub struct ColorsBag {

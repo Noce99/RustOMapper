@@ -8,11 +8,11 @@ pub trait GeometricShape{
 
 // CIRCLE
 pub struct Annulus {
-    inner_radius: u32,
-    inner_color: Option<u32>,
-    outer_width: u32,
-    outer_color: Option<u32>,
-    elements: u32,
+    pub inner_radius: u32,
+    pub inner_color: Option<u32>,
+    pub outer_width: u32,
+    pub outer_color: Option<u32>,
+    pub elements: u32,
 }
 
 impl Annulus {

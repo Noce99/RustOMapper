@@ -1,12 +1,13 @@
+use std::any::Any;
 use std::rc::Rc;
 use std::time::Instant;
 use crate::map_file::reading::Node;
 
-mod punctual;
-mod linear;
-mod area;
-mod text;
-mod geometric_shape;
+pub mod punctual;
+pub mod linear;
+pub mod area;
+pub mod text;
+pub mod geometric_shape;
 
 #[derive(Debug)]
 struct SymbolCommon{
@@ -59,7 +60,7 @@ impl SymbolCommon{
     }
 }
 
-pub trait Symbol{
+pub trait Symbol: Any{
     fn render(&self);
     fn show(&self) -> String;
     // fn symbol_from_a_node(basic_symbol: SymbolCommon, node: &Rc<Node>) -> Option<Box<Self>>;
@@ -70,7 +71,7 @@ pub struct SymbolsBag {
     // A Box is simply a container that store the data on the heap instead that on the stack, when
     // the owner change just the pointer in the stack is copied and not the real data on the heap.
     // dyn Symbol means that inside the Boxes we can have any struct that implement the Symbol trait
-    bag: Vec<Box<dyn Symbol>>
+    pub(crate) bag: Vec<Box<dyn Symbol>>
 }
 
 impl SymbolsBag {

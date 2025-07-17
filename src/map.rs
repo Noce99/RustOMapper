@@ -5,6 +5,7 @@ use crate::map_file::reading::Node;
 
 pub(crate) mod symbols;
 pub mod colors;
+pub mod yaml_encoding;
 
 pub struct Map{
     pub colors: ColorsBag,
@@ -50,5 +51,4 @@ impl Map {
             symbols
         })
     }
-
 }
