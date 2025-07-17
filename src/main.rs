@@ -29,8 +29,8 @@ fn main() {
         None => {panic!("I was not able to create a map object!")},
         Some(aa_map) => {a_map = aa_map}
     }
-    a_map.colors.show();
-    a_map.symbols.show();
+    // a_map.colors.show();
+    // a_map.symbols.show();
 
     /*
     let struct_types = a_node.get_struct_types();

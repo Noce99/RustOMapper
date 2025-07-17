@@ -8,7 +8,6 @@ use std::rc::{Rc, Weak};
 use std::time::Instant;
 
 use crate::map::symbols::SymbolsBag;
-
 pub struct Node {
     pub name : String,
     pub attributes : Vec<(String, String)>,
