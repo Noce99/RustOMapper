@@ -1,3 +1,4 @@
+use std::env;
 use std::net::{TcpListener, TcpStream};
 use std::process::exit;
 use std::string::ToString;
@@ -56,6 +57,10 @@ impl WebSocketServer {
     }
     pub fn run(&mut self){
         println!("Listening on ws://127.0.0.1:1999");
+        let mut current_dir = env::current_dir().expect("Failed to get current directory! WTF!");
+        current_dir.push("web_src");
+        current_dir.push("index.html");
+        println!("Open: file://{}", current_dir.display());
 
         for stream_result in self.server.try_clone().unwrap().incoming() {
             let stream;

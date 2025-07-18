@@ -109,13 +109,13 @@ pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
         text_symbols:       Vec::new(),
     };
     for symbol in &map.symbols.bag{
-        if let Some(punctual_symbol) =(symbol as &dyn Any).downcast_ref::<PunctualSymbol>() {
+        if let Some(punctual_symbol) =(symbol.as_ref() as &dyn Any).downcast_ref::<PunctualSymbol>() {
             let mut annulus: Vec<AnnulusYaml> = Vec::new();
             let mut lines: Vec<LineYaml> = Vec::new();
             let mut areas: Vec<AreaYaml> = Vec::new();
             let mut texts: Vec<TextSymbolYaml> = Vec::new();
             for geometric_shape in &punctual_symbol.geometric_shapes{
-                if let Some(an_annulus) =(&*geometric_shape as &dyn Any).downcast_ref::<Annulus>() {
+                if let Some(an_annulus) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Annulus>() {
                     let inner_color: i32;
                     match an_annulus.inner_color {
                         None => {inner_color = -1;}
@@ -135,11 +135,11 @@ pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
                             elements: an_annulus.elements,
                         }
                     )
-                }else if let Some(line) =(&*geometric_shape as &dyn Any).downcast_ref::<Line>() {
+                }else if let Some(line) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Line>() {
 
-                }else if let Some(area) =(&*geometric_shape as &dyn Any).downcast_ref::<Area>() {
+                }else if let Some(area) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Area>() {
 
-                }else if let Some(text) =(&*geometric_shape as &dyn Any).downcast_ref::<TextSymbol>() {
+                }else if let Some(text) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<TextSymbol>() {
 
                 }
             }

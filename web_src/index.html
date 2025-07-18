@@ -13,7 +13,6 @@
             justify-content: flex-start;
             height: 100vh;
             margin: 0;
-            padding: 20px;
             box-sizing: border-box;
             background-color: #f5f5f5;
             position: relative;
@@ -26,14 +25,15 @@
             color: #333;
         }
 
-        .content {
+        .map_selector {
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 100%;
             flex-grow: 1;
             overflow-y: auto;
-            padding-bottom: 140px;
+            padding-bottom: 15%;
+            box-sizing: border-box;
         }
 
         .buttons-container {
@@ -42,7 +42,7 @@
             align-items: center;
             gap: 15px;
             width: 100%;
-            max-width: 400px;
+            max-width: 600px;
             margin-bottom: 20px;
         }
 
@@ -74,8 +74,8 @@
             right: 0;
             background-color: #333;
             color: #fff;
-            padding: 10px;
-            height: 120px;
+            /*padding: 10px;*/
+            height: 15%;
             overflow-y: auto;
             font-family: monospace;
             border-top: 3px solid #cf0606;
@@ -86,13 +86,61 @@
             padding: 2px 5px;
             border-bottom: 1px solid #444;
         }
+
+        .editor {
+            display: none;
+            position: absolute;
+            top: 0;
+            bottom: 15%;
+            width: 100%;
+        }
+
+        .editor_menu {
+            display: flex;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5%; /* Exactly 5% of window height */
+            align-items: center; /* Vertically center buttons */
+            padding: 0 5px; /* Small side padding */
+            box-sizing: border-box; /* Include padding in width */
+            gap: 5px; /* Space between buttons (modern browsers) */
+        }
+
+        .editor_menu button {
+            padding: 0 10px; /* Adjust as needed */
+            height: 80%; /* Fits nicely inside 5% container */
+            min-width: 0; /* Prevents text overflow issues */
+            white-space: nowrap; /* Prevents button text from wrapping */
+            overflow: hidden; /* Hides text if too long */
+            text-overflow: ellipsis; /* Adds "..." if text overflows */
+        }
+
+        .paper {
+            position: absolute;
+            top: 5%;
+            left: 0;
+            width: 100%;
+            height: 95%;
+        }
     </style>
 </head>
 <body>
-<div class="content">
+<div id="map_selector" class="map_selector">
     <div class="title">MAPS:</div>
     <div class="buttons-container" id="mapsContainer">
     </div>
+</div>
+<div id="editor" class="editor">
+    <div class="editor_menu">
+        <button onclick="open_map_selection()">Map Selection</button>
+        <button>Button 2</button>
+        <button>Button 3</button>
+        <button>Button 4</button>
+        <button>Button 5</button>
+    </div>
+    <div class="paper"></div>
 </div>
 
 <div class="log-console" id="logConsole">
@@ -101,6 +149,46 @@
 
 <script>
     let socket;
+    let colors;
+    let symbols;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        logMessage("Application started");
+        connectWebSocket();
+
+        const paperDiv = document.querySelector('.paper');
+
+        // Create the canvas element
+        const canvas = document.createElement('canvas');
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.style.display = 'block';
+        paperDiv.appendChild(canvas);
+
+        // Function to resize the canvas to maximum resolution
+        function resizeCanvas() {
+            // Get the display size of the canvas
+            const displayWidth = canvas.clientWidth;
+            const displayHeight = canvas.clientHeight;
+
+            // Get the device pixel ratio
+            const pixelRatio = window.devicePixelRatio || 1;
+
+            // Set the canvas internal size (scaled by pixel ratio)
+            canvas.width = Math.round(displayWidth * pixelRatio);
+            canvas.height = Math.round(displayHeight * pixelRatio);
+
+            // Scale the context to account for the pixel ratio
+            const ctx = canvas.getContext('2d');
+            ctx.scale(pixelRatio, pixelRatio);
+        }
+
+        // Initial resize
+        resizeCanvas();
+
+        // Resize when the window changes size
+        window.addEventListener('resize', resizeCanvas);
+    });
 
     function addMapButtons(mapPaths) {
         const container = document.getElementById('mapsContainer');
@@ -140,8 +228,12 @@
                 }else if (message_from_server.response_type === "error"){
                     logMessage(`From Server: Error: ${message_from_server.error}`);
                 }else if (message_from_server.response_type === "map") {
-                    logMessage(`From Server: Colors: ${message_from_server.colors}`);
-                    logMessage(`From Server: Symbols: ${message_from_server.symbols}`);
+                    colors = message_from_server.colors;
+                    symbols = message_from_server.symbols;
+                    console.log(colors);
+                    console.log(symbols);
+                    open_editor();
+                    draw_map();
                 }
             } catch (e) {
                 logMessage(`Received an INVALID Json Message from Server. ${e}`);
@@ -208,11 +300,26 @@
         logConsole.scrollTop = logConsole.scrollHeight;
     }
 
-    //const exampleMaps = ["Forest", "Desert", "City", "Dungeon", "Mountain", "Beach", "Volcano", "Castle", "Cave", "Island"];
-    //addMapButtons(exampleMaps);
+    function open_editor(){
+        let map_selector = document.getElementById("map_selector");
+        let editor = document.getElementById("editor");
+        map_selector.style.display = "none";
+        editor.style.display = "flex"
+    }
 
-    logMessage("Application started");
-    connectWebSocket();
+    function open_map_selection(){
+        let map_selector = document.getElementById("map_selector");
+        let editor = document.getElementById("editor");
+        map_selector.style.display = "flex";
+        editor.style.display = "none"
+    }
+
+    function draw_map(){
+
+    }
+
+    // const exampleMaps = ["Forest", "Desert", "City", "Dungeon", "Mountain", "Beach", "Volcano", "Castle", "Cave", "Island"];
+    // addMapButtons(exampleMaps);
 </script>
 </body>
 </html>

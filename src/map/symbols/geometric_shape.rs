@@ -1,8 +1,9 @@
+use std::any::Any;
 use std::ptr::addr_eq;
 use std::rc::Rc;
 use crate::map_file::reading::Node;
 
-pub trait GeometricShape{
+pub trait GeometricShape: Any{
     fn render(&self);
 }
 
