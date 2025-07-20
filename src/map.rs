@@ -1,15 +1,18 @@
 use std::rc::Rc;
 use crate::map::colors::ColorsBag;
 use crate::map::symbols::SymbolsBag;
+use crate::map::elements::ElementsBag;
 use crate::map_file::reading::Node;
 
-pub(crate) mod symbols;
+pub mod symbols;
 pub mod colors;
 pub mod yaml_encoding;
+pub mod elements;
 
 pub struct Map{
     pub colors: ColorsBag,
-    pub symbols: SymbolsBag
+    pub symbols: SymbolsBag,
+    pub elements: ElementsBag,
 }
 
 impl Map {
@@ -46,9 +49,13 @@ impl Map {
             None => {eprintln!("Not possible to create a SymbolsBag from a Node!"); return None}
             Some(a_symbols_bag) => {symbols = a_symbols_bag}
         }
+        let parts = map_node.search_child_by_name("parts").unwrap();
+        let elements = ElementsBag::elements_from_parts(parts);
+
         Some(Map {
             colors,
-            symbols
+            symbols,
+            elements
         })
     }
 }
