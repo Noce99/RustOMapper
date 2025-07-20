@@ -4,7 +4,7 @@ use crate::map::colors::ColorsBag;
 use crate::map::Map;
 use std::any::TypeId;
 use crate::map::symbols::area::AreaSymbol;
-use crate::map::symbols::geometric_shape::{Annulus, Area, Line};
+use crate::map::symbols::geometric_shape::{Ring, Area, Line, Circle};
 use crate::map::symbols::linear::LinearSymbol;
 use crate::map::symbols::punctual::PunctualSymbol;
 use crate::map::symbols::text::TextSymbol;
@@ -39,7 +39,8 @@ struct PunctualSymbolYaml {
     code: String,
     name: String,
     description: String,
-    annulus: Vec<AnnulusYaml>,
+    rings: Vec<RingYaml>,
+    circles: Vec<CircleYaml>,
     lines: Vec<LineYaml>,
     areas: Vec<AreaYaml>,
     texts: Vec<TextSymbolYaml>,
@@ -63,12 +64,16 @@ struct LineYaml {
 }
 
 #[derive(Serialize, Deserialize)]
-struct AnnulusYaml {
-    inner_radius: u32,
-    inner_color: i32,
-    outer_width: u32,
-    outer_color: i32,
-    elements: u32,
+struct RingYaml {
+    pub inner_radius: u32,
+    pub outer_width: u32,
+    pub color: u32,
+}
+
+#[derive(Serialize, Deserialize)]
+struct CircleYaml {
+    pub radius: u32,
+    pub color: u32,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -110,29 +115,25 @@ pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
     };
     for symbol in &map.symbols.bag{
         if let Some(punctual_symbol) =(symbol.as_ref() as &dyn Any).downcast_ref::<PunctualSymbol>() {
-            let mut annulus: Vec<AnnulusYaml> = Vec::new();
+            let mut rings: Vec<RingYaml> = Vec::new();
+            let mut circles: Vec<CircleYaml> = Vec::new();
             let mut lines: Vec<LineYaml> = Vec::new();
             let mut areas: Vec<AreaYaml> = Vec::new();
             let mut texts: Vec<TextSymbolYaml> = Vec::new();
             for geometric_shape in &punctual_symbol.geometric_shapes{
-                if let Some(an_annulus) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Annulus>() {
-                    let inner_color: i32;
-                    match an_annulus.inner_color {
-                        None => {inner_color = -1;}
-                        Some(an_inner_color) => {inner_color = an_inner_color as i32;}
-                    }
-                    let outer_color: i32;
-                    match an_annulus.outer_color {
-                        None => {outer_color = -1;}
-                        Some(an_outer_color) => {outer_color = an_outer_color as i32;}
-                    }
-                    annulus.push(
-                        AnnulusYaml{
-                            inner_radius: an_annulus.inner_radius,
-                            inner_color,
-                            outer_width: an_annulus.outer_width,
-                            outer_color,
-                            elements: an_annulus.elements,
+                if let Some(a_ring) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Ring>() {
+                    rings.push(
+                        RingYaml {
+                            inner_radius: a_ring.inner_radius,
+                            outer_width: a_ring.outer_width,
+                            color: a_ring.color,
+                        }
+                    )
+                }else if let Some(a_circle) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Circle>() {
+                    circles.push(
+                        CircleYaml {
+                            radius: a_circle.radius,
+                            color: a_circle.color,
                         }
                     )
                 }else if let Some(line) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Line>() {
@@ -149,7 +150,8 @@ pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
                     code:           punctual_symbol.code.clone(),
                     name:           punctual_symbol.name.clone(),
                     description:    punctual_symbol.description.clone(),
-                    annulus,
+                    rings,
+                    circles,
                     lines,
                     areas,
                     texts,

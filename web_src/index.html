@@ -140,7 +140,10 @@
         <button>Button 4</button>
         <button>Button 5</button>
     </div>
-    <div class="paper"></div>
+    <div id="paper" class="paper">
+        <canvas id="canvas">
+        </canvas>
+    </div>
 </div>
 
 <div class="log-console" id="logConsole">
@@ -151,35 +154,34 @@
     let socket;
     let colors;
     let symbols;
+    let ctx;
+    let canvas;
 
     document.addEventListener('DOMContentLoaded', function() {
         logMessage("Application started");
-        connectWebSocket();
 
-        const paperDiv = document.querySelector('.paper');
+        canvas = document.getElementById("canvas");
 
         // Create the canvas element
-        const canvas = document.createElement('canvas');
+        ctx = canvas.getContext('2d');
         canvas.style.width = '100%';
         canvas.style.height = '100%';
         canvas.style.display = 'block';
-        paperDiv.appendChild(canvas);
 
         // Function to resize the canvas to maximum resolution
         function resizeCanvas() {
             // Get the display size of the canvas
-            const displayWidth = canvas.clientWidth;
-            const displayHeight = canvas.clientHeight;
+            const displayWidth = window.innerWidth;
+            const displayHeight = window.innerHeight;
 
             // Get the device pixel ratio
             const pixelRatio = window.devicePixelRatio || 1;
 
             // Set the canvas internal size (scaled by pixel ratio)
             canvas.width = Math.round(displayWidth * pixelRatio);
-            canvas.height = Math.round(displayHeight * pixelRatio);
+            canvas.height = Math.round(displayHeight * pixelRatio * (0.85 - 0.05*0.85));
 
             // Scale the context to account for the pixel ratio
-            const ctx = canvas.getContext('2d');
             ctx.scale(pixelRatio, pixelRatio);
         }
 
@@ -188,6 +190,7 @@
 
         // Resize when the window changes size
         window.addEventListener('resize', resizeCanvas);
+        connectWebSocket();
     });
 
     function addMapButtons(mapPaths) {
@@ -315,7 +318,47 @@
     }
 
     function draw_map(){
+        let xx = 300;
+        let yy = 300;
+        symbols.punctual_symbols.forEach(symbol => {
+            symbol.circles.forEach(circle => {
+                drawCircle(xx, yy, circle.radius, circle.color);
+            })
+            symbol.rings.forEach(ring => {
+                drawRing(xx, yy, ring.inner_radius, ring.outer_width, ring.color);
+            })
 
+            if (symbol.rings.length > 0){
+                xx += 40;
+            }
+            if (symbol.circles.length > 0){
+                xx += 40;
+            }
+        })
+    }
+
+    function drawCircle(x, y, radius, color_id){
+        console.log(`Circle ${x} ${y} ${radius} ${color_id}`)
+        let color = colors.colors[color_id];
+        ctx.beginPath();
+        // Outer circle
+        ctx.arc(x, y, parseInt(radius/30), 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+        ctx.fill();
+    }
+
+    function drawRing(x, y, innerRadius, outer_width, color_id) {
+        console.log(`Ring ${x} ${y} ${innerRadius} ${outer_width} ${color_id}`)
+        let color = colors.colors[color_id];
+        ctx.beginPath();
+        // Outer circle
+        ctx.arc(x, y, parseInt(innerRadius/30 + outer_width/30), 0, Math.PI * 2);
+        // Inner circle
+        ctx.arc(x, y, parseInt(innerRadius/30), 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+        ctx.fill();
     }
 
     // const exampleMaps = ["Forest", "Desert", "City", "Dungeon", "Mountain", "Beach", "Volcano", "Castle", "Cave", "Island"];

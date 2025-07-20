@@ -100,7 +100,6 @@ impl SymbolsBag {
                 Some(a_symbol) => {basic_symbol = a_symbol}
                 None => {eprintln!("I was not able to create a SymbolCommon from a Symbol Node?"); return None}
             }
-            // println!("{:?}", basic_symbol);
             // Based on the symbol type I create (and add to the bag) different symbols
             if basic_symbol.symbol_type == "2"{
                 let linear_symbol_option = linear::LinearSymbol::symbol_from_a_node(&basic_symbol, child);
