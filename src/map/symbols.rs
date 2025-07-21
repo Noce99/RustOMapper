@@ -2,6 +2,7 @@ use std::any::Any;
 use std::rc::Rc;
 use std::time::Instant;
 use crate::map_file::reading::Node;
+use std::collections::HashMap;
 
 pub mod punctual;
 pub mod linear;
@@ -12,7 +13,7 @@ pub mod geometric_shape;
 #[derive(Debug)]
 struct SymbolCommon{
     symbol_type: String,
-    id: u32,
+    id: i32,
     code: String,
     name: String,
     description: String,
@@ -27,7 +28,7 @@ impl SymbolCommon{
             None => {println!("I was not able to fine the 'type' attribute in a symbol node? WTF?"); return None}
         }
         let id_attribute_option = node.search_attribute_by_name("id");
-        let id: u32;
+        let id: i32;
         match id_attribute_option{
             Some(an_id) => {id = an_id.parse().unwrap()}
             None => {id = 0;}
@@ -63,7 +64,10 @@ impl SymbolCommon{
 pub trait Symbol: Any{
     fn render(&self);
     fn show(&self) -> String;
-    // fn symbol_from_a_node(basic_symbol: SymbolCommon, node: &Rc<Node>) -> Option<Box<Self>>;
+
+    fn get_id(&self) -> i32;
+
+    fn get_symbol_type(&self) -> String;
 }
 
 pub struct SymbolsBag {
@@ -71,15 +75,15 @@ pub struct SymbolsBag {
     // A Box is simply a container that store the data on the heap instead that on the stack, when
     // the owner change just the pointer in the stack is copied and not the real data on the heap.
     // dyn Symbol means that inside the Boxes we can have any struct that implement the Symbol trait
-    pub(crate) bag: Vec<Box<dyn Symbol>>
+    pub bag: HashMap<i32, Box<dyn Symbol>>
 }
 
 impl SymbolsBag {
     pub fn new() -> Self {
-        Self { bag: Vec::new() }
+        Self { bag: HashMap::new() }
     }
     pub fn insert(&mut self, symbol: Box<dyn Symbol>) {
-        self.bag.push(symbol);
+        self.bag.insert(symbol.get_id(), symbol);
     }
     pub fn len(&self) -> usize {
         self.bag.len()
@@ -88,7 +92,7 @@ impl SymbolsBag {
     pub fn symbols_from_a_node(symbols_node: Rc<Node>)-> Option<Self>{
         println!("I'm going to create a Symbols Bag!");
         let start_symbols_bag_creation_time = Instant::now();
-        let mut bag: Vec<Box<dyn Symbol>> = Vec::new();
+        let mut bag: HashMap<i32, Box<dyn Symbol>> = HashMap::new();
         for child in symbols_node.children.borrow().iter() {
             if child.name != "symbol"{
                 continue;
@@ -108,7 +112,7 @@ impl SymbolsBag {
                     Some(a_linear_symbol) => {linear_symbol = a_linear_symbol;}
                     None => {eprintln!("I was not able to create a LinearSymbol from a Symbol Node. [name = {}, type = {}]", basic_symbol.name.clone(), basic_symbol.symbol_type.clone()); return None}
                 }
-                bag.push(linear_symbol);
+                bag.insert(linear_symbol.get_id(), linear_symbol);
             }else if basic_symbol.symbol_type == "4" || basic_symbol.symbol_type == "16" {
                 let area_symbol_option = area::AreaSymbol::symbol_from_a_node(&basic_symbol, child);
                 let area_symbol;
@@ -116,7 +120,7 @@ impl SymbolsBag {
                     Some(an_area_symbol) => {area_symbol = an_area_symbol;}
                     None => {eprintln!("I was not able to create a AreaSymbol from a Symbol Node. [name = {}, type = {}]", basic_symbol.name.clone(), basic_symbol.symbol_type.clone()); return None}
                 }
-                bag.push(area_symbol);
+                bag.insert(area_symbol.get_id(), area_symbol);
             }else if basic_symbol.symbol_type == "1" {
                 let punctual_symbol_option = punctual::PunctualSymbol::symbol_from_a_node(&basic_symbol, child);
                 let punctual_symbol;
@@ -124,7 +128,7 @@ impl SymbolsBag {
                     Some(a_punctual_symbol) => {punctual_symbol = a_punctual_symbol;}
                     None => {eprintln!("I was not able to create a PunctualSymbol from a Symbol Node. [name = {}, type = {}]", basic_symbol.name.clone(), basic_symbol.symbol_type.clone()); return None}
                 }
-                bag.push(punctual_symbol);
+                bag.insert(punctual_symbol.get_id(), punctual_symbol);
             }else if basic_symbol.symbol_type == "8" {
                 let text_symbol_option = text::TextSymbol::symbol_from_a_node(&basic_symbol, child);
                 let text_symbol;
@@ -132,7 +136,7 @@ impl SymbolsBag {
                     Some(a_text_symbol) => {text_symbol = a_text_symbol;}
                     None => {eprintln!("I was not able to create a TextSymbol from a Symbol Node. [name = {}, type = {}]", basic_symbol.name.clone(), basic_symbol.symbol_type.clone()); return None}
                 }
-                bag.push(text_symbol);
+                bag.insert(text_symbol.get_id(), text_symbol);
             }else{
                 println!("Find out a strange type for symbol ({}) [type={}]", basic_symbol.name, basic_symbol.symbol_type);
             }
@@ -148,8 +152,12 @@ impl SymbolsBag {
     }
 
     pub fn show(&self){
-        for symbol in &self.bag{
+        for (id, symbol) in &self.bag{
             println!("{}", symbol.show())
         }
+    }
+
+    pub fn symbol_by_id(&self, id: i32) -> Option<&Box<dyn Symbol>>{
+        self.bag.get(&id)
     }
 }

@@ -154,8 +154,16 @@
     let socket;
     let colors;
     let symbols;
+    let elements;
     let ctx;
     let canvas;
+
+    let focus_x = 0;
+    let focus_y = 0;
+    let zoom = 1/500;
+    let mouse_wheel_sensibility = 0.1;
+    let isDragging = false;
+    let last_x, last_y;
 
     document.addEventListener('DOMContentLoaded', function() {
         logMessage("Application started");
@@ -190,6 +198,44 @@
 
         // Resize when the window changes size
         window.addEventListener('resize', resizeCanvas);
+
+        canvas.addEventListener('wheel', handleWheel);
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 0) {
+                isDragging = true;
+                const rect = canvas.getBoundingClientRect();
+                last_x = e.clientX - rect.left;
+                last_y = e.clientY - rect.top;
+            }
+        });
+        canvas.addEventListener('mouseup', (e) => {
+            if (e.button === 0) {
+                isDragging = false;
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+        });
+
+        // Mouse move event - update center if dragging
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                // Get mouse position relative to canvas
+                const rect = canvas.getBoundingClientRect();
+                let move_x = (e.clientX - rect.left) - last_x;
+                let move_y = (e.clientY - rect.top) - last_y;
+                focus_x += move_x/zoom;
+                focus_y += move_y/zoom;
+                last_x = e.clientX - rect.left;
+                last_y = e.clientY - rect.top;
+
+                // Redraw to show new position
+                draw_map();
+            }
+        });
+
         connectWebSocket();
     });
 
@@ -233,8 +279,13 @@
                 }else if (message_from_server.response_type === "map") {
                     colors = message_from_server.colors;
                     symbols = message_from_server.symbols;
+                    elements = message_from_server.elements;
+                    console.log("Colors:");
                     console.log(colors);
+                    console.log("Symbols:");
                     console.log(symbols);
+                    console.log("Elements:");
+                    console.log(elements);
                     open_editor();
                     draw_map();
                 }
@@ -318,48 +369,83 @@
     }
 
     function draw_map(){
-        let xx = 300;
-        let yy = 300;
-        symbols.punctual_symbols.forEach(symbol => {
-            symbol.circles.forEach(circle => {
-                drawCircle(xx, yy, circle.radius, circle.color);
-            })
-            symbol.rings.forEach(ring => {
-                drawRing(xx, yy, ring.inner_radius, ring.outer_width, ring.color);
-            })
-
-            if (symbol.rings.length > 0){
-                xx += 40;
-            }
-            if (symbol.circles.length > 0){
-                xx += 40;
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        elements.elements.forEach(element => {
+            if (element.element_family === "punctual") {
+                let symbol_id = element.symbol;
+                let x = element.coordinates[0].x;
+                let y = element.coordinates[0].y;
+                let symbol = symbols.punctual_symbols[symbol_id];
+                symbol.circles.forEach(circle => {
+                    drawCircle(
+                        focus_x+x+circle.x,
+                        focus_y+y+circle.y,
+                        circle.radius,
+                        circle.color,
+                    )
+                })
+                symbol.rings.forEach(ring => {
+                    drawRing(
+                        focus_x+x+ring.x,
+                        focus_y+y+ring.y,
+                        ring.inner_radius,
+                        ring.outer_width,
+                        ring.color,
+                    )
+                })
             }
         })
     }
 
     function drawCircle(x, y, radius, color_id){
-        console.log(`Circle ${x} ${y} ${radius} ${color_id}`)
         let color = colors.colors[color_id];
         ctx.beginPath();
         // Outer circle
-        ctx.arc(x, y, parseInt(radius/30), 0, Math.PI * 2);
+        ctx.arc(x*zoom+canvas.width/2, y*zoom+canvas.height/2, parseInt(radius*zoom), 0, Math.PI * 2);
         ctx.closePath();
         ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
         ctx.fill();
     }
 
     function drawRing(x, y, innerRadius, outer_width, color_id) {
-        console.log(`Ring ${x} ${y} ${innerRadius} ${outer_width} ${color_id}`)
         let color = colors.colors[color_id];
         ctx.beginPath();
         // Outer circle
-        ctx.arc(x, y, parseInt(innerRadius/30 + outer_width/30), 0, Math.PI * 2);
+        ctx.arc(x*zoom+canvas.width/2, y*zoom+canvas.height/2, parseInt((innerRadius + outer_width)*zoom), 0, Math.PI * 2);
         // Inner circle
-        ctx.arc(x, y, parseInt(innerRadius/30), 0, Math.PI * 2, true);
+        ctx.arc(x*zoom+canvas.width/2, y*zoom+canvas.height/2, parseInt(innerRadius*zoom), 0, Math.PI * 2, true);
         ctx.closePath();
         ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
         ctx.fill();
     }
+
+    function handleWheel(e) {
+        // Normalize deltaY across browsers
+        const delta = Math.sign(e.deltaY) ||
+            Math.sign(e.wheelDelta) * -1 ||
+            0;
+        console.log(zoom);
+        if (delta < 0) {
+            zoom = zoom + mouse_wheel_sensibility*zoom;
+
+            const rect = canvas.getBoundingClientRect();
+            focus_x -= mouse_wheel_sensibility*(e.clientX - rect.left - canvas.width/2)/zoom;
+            focus_y -= mouse_wheel_sensibility*(e.clientY - rect.top - canvas.height/2)/zoom;
+            draw_map();
+        } else if (delta > 0) {
+            zoom = zoom - mouse_wheel_sensibility*zoom;
+
+            const rect = canvas.getBoundingClientRect();
+            focus_x += mouse_wheel_sensibility*(e.clientX - rect.left - canvas.width/2)/zoom;
+            focus_y += mouse_wheel_sensibility*(e.clientY - rect.top - canvas.height/2)/zoom;
+            draw_map();
+        }
+    }
+
+
+
+
 
     // const exampleMaps = ["Forest", "Desert", "City", "Dungeon", "Mountain", "Beach", "Volcano", "Castle", "Cave", "Island"];
     // addMapButtons(exampleMaps);

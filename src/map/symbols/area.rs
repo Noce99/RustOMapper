@@ -4,7 +4,7 @@ use crate::map::symbols::linear::LinearSymbol;
 use crate::map_file::reading::Node;
 
 pub struct AreaSymbol{
-    id: u32,
+    id: i32,
     code: String,
     name: String,
     description: String,
@@ -30,4 +30,11 @@ impl Symbol for AreaSymbol{
         format!("{} [Area Symbol] ({})", self.name, self.id)
     }
 
+    fn get_id(&self) -> i32 {
+        self.id
+    }
+
+    fn get_symbol_type(&self) -> String {
+        "area".to_string()
+    }
 }

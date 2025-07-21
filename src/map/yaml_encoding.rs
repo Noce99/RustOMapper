@@ -3,11 +3,22 @@ use serde::{Deserialize, Serialize, Serializer};
 use crate::map::colors::ColorsBag;
 use crate::map::Map;
 use std::any::TypeId;
+use std::collections::HashMap;
+use crate::map::elements::{Element, PointNode};
 use crate::map::symbols::area::AreaSymbol;
 use crate::map::symbols::geometric_shape::{Ring, Area, Line, Circle};
 use crate::map::symbols::linear::LinearSymbol;
 use crate::map::symbols::punctual::PunctualSymbol;
+use crate::map::symbols::SymbolsBag;
 use crate::map::symbols::text::TextSymbol;
+
+#[derive(Serialize, Deserialize)]
+struct MapYaml {
+    response_type: String,
+    colors: ColorsYaml,
+    symbols: SymbolsYaml,
+    elements: ElementsYaml,
+}
 
 #[derive(Serialize, Deserialize)]
 struct ColorsYaml {
@@ -27,22 +38,22 @@ struct ColorYaml {
 #[derive(Serialize, Deserialize)]
 struct SymbolsYaml {
     num: usize,
-    punctual_symbols: Vec<PunctualSymbolYaml>,
-    linear_symbols: Vec<LinearSymbolYaml>,
-    area_symbols: Vec<AreaSymbolYaml>,
-    text_symbols: Vec<TextSymbolYaml>,
+    punctual_symbols: HashMap<i32, PunctualSymbolYaml>,
+    linear_symbols: HashMap<i32, LinearSymbolYaml>,
+    area_symbols: HashMap<i32, AreaSymbolYaml>,
+    text_symbols: HashMap<i32, TextSymbolYaml>,
 }
 
 #[derive(Serialize, Deserialize)]
 struct PunctualSymbolYaml {
-    id: u32,
+    id: i32,
     code: String,
     name: String,
     description: String,
-    rings: Vec<RingYaml>,
-    circles: Vec<CircleYaml>,
-    lines: Vec<LineYaml>,
-    areas: Vec<AreaYaml>,
+    rings: Vec<Ring>,
+    circles: Vec<Circle>,
+    lines: Vec<Line>,
+    areas: Vec<Area>,
     texts: Vec<TextSymbolYaml>,
 }
 
@@ -59,33 +70,43 @@ struct LinearSymbolYaml {
 }
 
 #[derive(Serialize, Deserialize)]
-struct LineYaml {
-
+struct ElementsYaml {
+    num: usize,
+    elements: Vec<ElementYaml>,
 }
 
 #[derive(Serialize, Deserialize)]
-struct RingYaml {
-    pub inner_radius: u32,
-    pub outer_width: u32,
-    pub color: u32,
+struct ElementYaml {
+    pub element_family: String,
+    pub element_type: u32,
+    pub symbol: i32,
+    pub coordinates: Vec<PointNode>,
+    pub pattern_rotation: f32,
+    pub pattern_rotation_x: i64,
+    pub pattern_rotation_y: i64,
 }
 
-#[derive(Serialize, Deserialize)]
-struct CircleYaml {
-    pub radius: u32,
-    pub color: u32,
-}
+impl ElementYaml {
+    fn from_element(element: &Element, symbols: &SymbolsBag) -> Option<Self>{
+        let symbol_option = symbols.symbol_by_id(element.symbol);
 
-#[derive(Serialize, Deserialize)]
-struct AreaYaml {
-
-}
-
-#[derive(Serialize, Deserialize)]
-struct MapYaml {
-    response_type: String,
-    colors: ColorsYaml,
-    symbols: SymbolsYaml,
+        match symbol_option {
+            Some(a_symbol) => {
+                Some(ElementYaml{
+                    element_family: a_symbol.get_symbol_type(),
+                    element_type: element.element_type,
+                    symbol: element.symbol,
+                    coordinates: element.coordinates.clone(),
+                    pattern_rotation: element.pattern_rotation,
+                    pattern_rotation_x: element.pattern_rotation_y,
+                    pattern_rotation_y: element.pattern_rotation_x,
+                })
+            },
+            None => {
+                None
+            }
+        }
+    }
 }
 
 pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
@@ -108,22 +129,24 @@ pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
     // SYMBOLS
     let mut symbols_yaml = SymbolsYaml{
         num:                map.symbols.len(),
-        punctual_symbols:   Vec::new(),
-        linear_symbols:     Vec::new(),
-        area_symbols:       Vec::new(),
-        text_symbols:       Vec::new(),
+        punctual_symbols:   HashMap::new(),
+        linear_symbols:     HashMap::new(),
+        area_symbols:       HashMap::new(),
+        text_symbols:       HashMap::new(),
     };
-    for symbol in &map.symbols.bag{
+    for (id, symbol) in &map.symbols.bag{
         if let Some(punctual_symbol) =(symbol.as_ref() as &dyn Any).downcast_ref::<PunctualSymbol>() {
-            let mut rings: Vec<RingYaml> = Vec::new();
-            let mut circles: Vec<CircleYaml> = Vec::new();
-            let mut lines: Vec<LineYaml> = Vec::new();
-            let mut areas: Vec<AreaYaml> = Vec::new();
+            let mut rings: Vec<Ring> = Vec::new();
+            let mut circles: Vec<Circle> = Vec::new();
+            let mut lines: Vec<Line> = Vec::new();
+            let mut areas: Vec<Area> = Vec::new();
             let mut texts: Vec<TextSymbolYaml> = Vec::new();
             for geometric_shape in &punctual_symbol.geometric_shapes{
                 if let Some(a_ring) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Ring>() {
                     rings.push(
-                        RingYaml {
+                        Ring {
+                            x: a_ring.x,
+                            y: a_ring.y,
                             inner_radius: a_ring.inner_radius,
                             outer_width: a_ring.outer_width,
                             color: a_ring.color,
@@ -131,7 +154,9 @@ pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
                     )
                 }else if let Some(a_circle) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Circle>() {
                     circles.push(
-                        CircleYaml {
+                        Circle {
+                            x: a_circle.x,
+                            y: a_circle.y,
                             radius: a_circle.radius,
                             color: a_circle.color,
                         }
@@ -144,7 +169,8 @@ pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
 
                 }
             }
-            symbols_yaml.punctual_symbols.push(
+            symbols_yaml.punctual_symbols.insert(
+                id.clone(),
                 PunctualSymbolYaml{
                     id:             punctual_symbol.id,
                     code:           punctual_symbol.code.clone(),
@@ -156,13 +182,29 @@ pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
                     areas,
                     texts,
                 }
-            )
+            );
         }
     }
+    // ELEMENTS
+    let mut elements_yaml = ElementsYaml{
+        num: 0,
+        elements: Vec::new(),
+    };
+    for element in &map.elements.bag {
+        match ElementYaml::from_element(element, &map.symbols){
+            None => {}
+            Some(an_element) => {
+                elements_yaml.elements.push(an_element);
+                elements_yaml.num +=1;
+            }
+        }
+    }
+
     let a_map_yaml = MapYaml{
         response_type: "map".to_string(),
         colors: colors_yaml,
         symbols: symbols_yaml,
+        elements: elements_yaml,
     };
     Ok(serde_json::to_string_pretty(&a_map_yaml).unwrap())
 }

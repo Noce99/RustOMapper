@@ -1,10 +1,11 @@
 use std::rc::Rc;
+use crate::map::elements::PointNode;
 use crate::map::symbols::{area, linear, punctual, text, Symbol, SymbolCommon};
 use crate::map::symbols::geometric_shape::{Ring, GeometricShape, Circle};
 use crate::map_file::reading::Node;
 
 pub struct PunctualSymbol{
-    pub id: u32,
+    pub id: i32,
     pub code: String,
     pub name: String,
     pub description: String,
@@ -21,7 +22,7 @@ impl PunctualSymbol{
         }
 
         let mut geometric_shapes : Vec<Box<dyn GeometricShape>> = Vec::new();
-        let (ring_option, circle_option) = from_point_symbol_node_to_circle_ring(point_symbol_node.clone());
+        let (ring_option, circle_option) = from_point_symbol_node_to_circle_ring(point_symbol_node.clone(), 0, 0);
         if ring_option.is_some(){
             geometric_shapes.push(Box::new(ring_option.unwrap()));
         }
@@ -43,6 +44,16 @@ impl PunctualSymbol{
                 Some(a_node) => {symbol_node = a_node}
                 None => {println!("I was not able to fine the 'symbol' child in this element: {}", child); return None}
             }
+            let object_node = child.search_child_by_name("object").unwrap();
+            let coordinate_str_node = object_node.search_child_by_name("coords").unwrap();
+            let inner_text_str = coordinate_str_node.inner_text.borrow().clone().unwrap();
+            let coordinates_vec_str: Vec<&str> = inner_text_str.split(';').collect();
+            let mut coordinates: Vec<PointNode> = Vec::new();
+            for item in coordinates_vec_str {
+                if item != "" {
+                    coordinates.push(PointNode::new_from_string(&item));
+                }
+            }
 
             let basic_geometric_symbol_option = SymbolCommon::new_from_node(&symbol_node);
             let basic_geometric_symbol;
@@ -57,13 +68,17 @@ impl PunctualSymbol{
 
                 //geometric_shapes.push(area_symbol);
             }else if basic_geometric_symbol.symbol_type == "1" {
+                assert_eq!(coordinates.len(), 1);
+                assert!(!coordinates[0].three_item);
+                let x = coordinates[0].x;
+                let y = coordinates[0].y;
                 let inner_point_symbol_option = symbol_node.search_child_by_name("point_symbol");
                 let inner_point_symbol_node: Rc<Node>;
                 match inner_point_symbol_option{
                     Some(a_node) => {inner_point_symbol_node = a_node}
                     None => {eprintln!("Inside an element of type {} I cannot find a point_symbol?!", basic_geometric_symbol.symbol_type); return None}
                 }
-                let (ring_option, circle_option) = from_point_symbol_node_to_circle_ring(inner_point_symbol_node.clone());
+                let (ring_option, circle_option) = from_point_symbol_node_to_circle_ring(inner_point_symbol_node.clone(), x, y);
                 if ring_option.is_some(){
                     geometric_shapes.push(Box::new(ring_option.unwrap()));
                 }
@@ -98,9 +113,17 @@ impl Symbol for PunctualSymbol {
     fn show(&self) -> String {
         format!("{} [Punctual Symbol] ({})", self.name, self.id)
     }
+
+    fn get_id(&self) -> i32 {
+        self.id
+    }
+
+    fn get_symbol_type(&self) -> String {
+        "punctual".to_string()
+    }
 }
 
-fn from_point_symbol_node_to_circle_ring(node: Rc<Node>) -> (Option<Ring>, Option<Circle>){
+fn from_point_symbol_node_to_circle_ring(node: Rc<Node>, x :i64, y :i64) -> (Option<Ring>, Option<Circle>){
     let inner_radius_option = node.search_attribute_by_name("inner_radius");
     let inner_radius: u32;
     match inner_radius_option {
@@ -149,6 +172,8 @@ fn from_point_symbol_node_to_circle_ring(node: Rc<Node>) -> (Option<Ring>, Optio
             // inner_radius = 0
             // outer_width > 0 && outer_color.is_some()
             circle = Some(Circle{
+                x: x as i32,
+                y: y as i32,
                 radius: outer_width,
                 color: outer_color.unwrap(),
             });
@@ -162,6 +187,8 @@ fn from_point_symbol_node_to_circle_ring(node: Rc<Node>) -> (Option<Ring>, Optio
             // inner_radius > 0
             // inner_color.is_some()
             circle = Some(Circle {
+                x: x as i32,
+                y: y as i32,
                 radius: inner_radius,
                 color: inner_color.unwrap(),
             });
@@ -174,6 +201,8 @@ fn from_point_symbol_node_to_circle_ring(node: Rc<Node>) -> (Option<Ring>, Optio
             // inner_radius > 0
             // outer_width > 0 && outer_color.is_some()
             ring = Some(Ring{
+                x: x as i32,
+                y: y as i32,
                 inner_radius,
                 outer_width,
                 color: outer_color.unwrap(),

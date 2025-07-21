@@ -3,7 +3,7 @@ use crate::map::symbols::{Symbol, SymbolCommon};
 use crate::map_file::reading::Node;
 
 pub struct LinearSymbol{
-    id: u32,
+    id: i32,
     code: String,
     name: String,
     description: String,
@@ -27,5 +27,13 @@ impl Symbol for LinearSymbol {
 
     fn show(&self) -> String {
         format!("{} [Linear Symbol] ({})", self.name, self.id)
+    }
+
+    fn get_id(&self) -> i32 {
+        self.id
+    }
+
+    fn get_symbol_type(&self) -> String {
+        "linear".to_string()
     }
 }

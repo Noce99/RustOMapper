@@ -2,9 +2,10 @@ use std::num::ParseIntError;
 use std::process::exit;
 use std::rc::Rc;
 use std::time::Instant;
+use serde::{Deserialize, Serialize};
 use crate::map_file::reading::Node;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PointNode {
     pub x: i64,
     pub y: i64,
@@ -23,14 +24,14 @@ impl PointNode {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Element {
-    element_type: u32,
-    symbol: i32,
-    coordinates: Vec<PointNode>,
-    pattern_rotation: f32,
-    pattern_rotation_x: i64,
-    pattern_rotation_y: i64,
+    pub element_type: u32,
+    pub symbol: i32,
+    pub coordinates: Vec<PointNode>,
+    pub pattern_rotation: f32,
+    pub pattern_rotation_x: i64,
+    pub pattern_rotation_y: i64,
 }
 
 impl Element {
@@ -71,7 +72,7 @@ impl Element {
 }
 
 pub struct ElementsBag{
-    pub elements: Vec<Element>,
+    pub bag: Vec<Element>,
 }
 impl ElementsBag {
     pub fn elements_from_parts(node:  Rc<Node>) -> ElementsBag {
@@ -92,6 +93,6 @@ impl ElementsBag {
         let elements_bag_time_ms = elements_bag_time.subsec_millis();
         println!("Created the Elements Bag in {elements_bag_time_s} s and \
          {elements_bag_time_ms} ms.");
-        ElementsBag {elements}
+        ElementsBag {bag: elements}
     }
 }

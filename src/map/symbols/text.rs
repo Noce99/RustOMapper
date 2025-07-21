@@ -4,7 +4,7 @@ use crate::map::symbols::punctual::PunctualSymbol;
 use crate::map_file::reading::Node;
 
 pub struct TextSymbol{
-    id: u32,
+    id: i32,
     code: String,
     name: String,
     description: String,
@@ -27,5 +27,13 @@ impl Symbol for TextSymbol{
 
     fn show(&self) -> String{
         format!("{} [Text Symbol] ({})", self.name, self.id)
+    }
+
+    fn get_id(&self) -> i32 {
+        self.id
+    }
+
+    fn get_symbol_type(&self) -> String {
+        "test".to_string()
     }
 }
