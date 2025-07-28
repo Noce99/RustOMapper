@@ -202,6 +202,7 @@
         canvas.addEventListener('wheel', handleWheel);
 
         canvas.addEventListener('mousedown', (e) => {
+            e.preventDefault();
             if (e.button === 0) {
                 isDragging = true;
                 const rect = canvas.getBoundingClientRect();
@@ -221,6 +222,7 @@
 
         // Mouse move event - update center if dragging
         canvas.addEventListener('mousemove', (e) => {
+            e.preventDefault();
             if (isDragging) {
                 // Get mouse position relative to canvas
                 const rect = canvas.getBoundingClientRect();
