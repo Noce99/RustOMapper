@@ -3,10 +3,10 @@ use crate::map::symbols::{Symbol, SymbolCommon};
 use crate::map_file::reading::Node;
 
 pub struct LinearSymbol{
-    id: i32,
-    code: String,
-    name: String,
-    description: String,
+    pub id: i32,
+    pub code: String,
+    pub name: String,
+    pub description: String,
 }
 
 impl LinearSymbol{

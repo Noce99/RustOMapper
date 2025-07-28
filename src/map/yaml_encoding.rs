@@ -59,14 +59,26 @@ struct PunctualSymbolYaml {
 
 #[derive(Serialize, Deserialize)]
 struct AreaSymbolYaml {
+    id: i32,
+    code: String,
+    name: String,
+    description: String,
 }
 
 #[derive(Serialize, Deserialize)]
 struct TextSymbolYaml {
+    id: i32,
+    code: String,
+    name: String,
+    description: String,
 }
 
 #[derive(Serialize, Deserialize)]
 struct LinearSymbolYaml {
+    id: i32,
+    code: String,
+    name: String,
+    description: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -162,7 +174,13 @@ pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
                         }
                     )
                 }else if let Some(line) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Line>() {
-
+                    lines.push(
+                        Line {
+                            color: line.color,
+                            line_width: line.line_width,
+                            nodes: line.nodes.clone(),
+                        }
+                    );
                 }else if let Some(area) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Area>() {
 
                 }else if let Some(text) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<TextSymbol>() {
@@ -181,6 +199,36 @@ pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
                     lines,
                     areas,
                     texts,
+                }
+            );
+        } else if let Some(linear_symbol) =(symbol.as_ref() as &dyn Any).downcast_ref::<LinearSymbol>() {
+            symbols_yaml.linear_symbols.insert(
+                id.clone(),
+                LinearSymbolYaml{
+                    id:             linear_symbol.id,
+                    code:           linear_symbol.code.clone(),
+                    name:           linear_symbol.name.clone(),
+                    description:    linear_symbol.description.clone(),
+                }
+            );
+        } else if let Some(area_symbol) =(symbol.as_ref() as &dyn Any).downcast_ref::<AreaSymbol>() {
+            symbols_yaml.area_symbols.insert(
+                id.clone(),
+                AreaSymbolYaml{
+                    id:             area_symbol.id,
+                    code:           area_symbol.code.clone(),
+                    name:           area_symbol.name.clone(),
+                    description:    area_symbol.description.clone(),
+                }
+            );
+        } else if let Some(text_symbol) =(symbol.as_ref() as &dyn Any).downcast_ref::<TextSymbol>() {
+            symbols_yaml.text_symbols.insert(
+                id.clone(),
+                TextSymbolYaml{
+                    id:             text_symbol.id,
+                    code:           text_symbol.code.clone(),
+                    name:           text_symbol.name.clone(),
+                    description:    text_symbol.description.clone(),
                 }
             );
         }

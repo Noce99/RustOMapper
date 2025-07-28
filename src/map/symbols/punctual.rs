@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use crate::map::elements::PointNode;
 use crate::map::symbols::{area, linear, punctual, text, Symbol, SymbolCommon};
-use crate::map::symbols::geometric_shape::{Ring, GeometricShape, Circle};
+use crate::map::symbols::geometric_shape::{Ring, GeometricShape, Circle, Point, Line};
 use crate::map_file::reading::Node;
 
 pub struct PunctualSymbol{
@@ -62,14 +62,82 @@ impl PunctualSymbol{
                 None => {eprintln!("I was not able to build a SymbolCommon from \n{}!", symbol_node); return None}
             }
             if basic_geometric_symbol.symbol_type == "2"{
-
-                //geometric_shapes.push(linear_symbol);
+                let inner_linear_symbol_option = symbol_node.search_child_by_name("line_symbol");
+                let inner_linear_symbol_node: Rc<Node>;
+                match inner_linear_symbol_option{
+                    Some(a_node) => {inner_linear_symbol_node = a_node}
+                    None => {eprintln!("Inside an element of type {} I cannot find a line_symbol?!", basic_geometric_symbol.symbol_type); return None}
+                }
+                let color_option = inner_linear_symbol_node.search_attribute_by_name("color");
+                let color: u32;
+                match color_option {
+                    Some(a_color) => {
+                        if a_color.parse::<i32>().unwrap() < 0 {
+                            continue;
+                        }
+                        color = a_color.parse().unwrap();
+                    }
+                    None => {println!("I was not able to fine the attribute 'color' in a line_symbol?"); return None}
+                }
+                let line_width_option = inner_linear_symbol_node.search_attribute_by_name("line_width");
+                let line_width: u32;
+                match line_width_option {
+                    Some(a_line_width) => {line_width = a_line_width.parse().unwrap();}
+                    None => {println!("I was not able to fine the attribute 'line_width' in a line_symbol?"); return None}
+                }
+                let mut nodes:Vec<crate::map::symbols::geometric_shape::Node> = Vec::new();
+                let mut i:usize = 0;
+                let mut a_left_branch:Option<Point> = None;
+                loop{
+                    if ! coordinates[i].bayesian {
+                        nodes.push(
+                            crate::map::symbols::geometric_shape::Node {
+                                point: Point {
+                                    x: coordinates[i].x,
+                                    y: coordinates[i].y,
+                                },
+                                left_branch: a_left_branch,
+                                right_branch: None,
+                            }
+                        );
+                        a_left_branch = None;
+                        i += 1;
+                    }else{
+                        nodes.push(
+                            crate::map::symbols::geometric_shape::Node {
+                                point: Point {
+                                    x: coordinates[i].x,
+                                    y: coordinates[i].y,
+                                },
+                                left_branch: None,
+                                right_branch: Some(Point{
+                                    x: coordinates[i+1].x,
+                                    y: coordinates[i+1].y,
+                                }),
+                            }
+                        );
+                        a_left_branch = Some(Point{
+                            x: coordinates[i+2].x,
+                            y: coordinates[i+2].y,
+                        });
+                        i = i+3;
+                    }
+                    if i >= coordinates.len(){
+                        break;
+                    }
+                }
+                let linear_symbol = Line{
+                    color,
+                    line_width,
+                    nodes,
+                };
+                geometric_shapes.push(Box::new(linear_symbol));
             }else if basic_geometric_symbol.symbol_type == "4" || basic_symbol.symbol_type == "16" {
 
-                //geometric_shapes.push(area_symbol);
+                //geometric_shapes.push(Box::new(area_symbol));
             }else if basic_geometric_symbol.symbol_type == "1" {
                 assert_eq!(coordinates.len(), 1);
-                assert!(!coordinates[0].three_item);
+                assert!(!coordinates[0].bayesian);
                 let x = coordinates[0].x;
                 let y = coordinates[0].y;
                 let inner_point_symbol_option = symbol_node.search_child_by_name("point_symbol");

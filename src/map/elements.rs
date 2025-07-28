@@ -9,18 +9,24 @@ use crate::map_file::reading::Node;
 pub struct PointNode {
     pub x: i64,
     pub y: i64,
-    pub three_item: bool,
+    pub bayesian: bool,
+    pub back_to_start: bool,
 }
 impl PointNode {
     pub fn new_from_string(s: &str) -> PointNode {
         let numbers: Vec<i64> = s.split_whitespace().map(|x| x.parse().unwrap()).collect();
         let x = numbers[0];
         let y = numbers[1];
-        let mut three_item = false;
+        let mut bayesian = false;
+        let mut back_to_start = false;
         if numbers.len() == 3 {
-            three_item = true;
+            if numbers[2] == 1 {
+                bayesian = true;
+            }else{
+                back_to_start = true;
+            }
         }
-        PointNode { x, y, three_item }
+        PointNode { x, y, bayesian, back_to_start}
     }
 }
 

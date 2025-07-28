@@ -2,7 +2,6 @@ use std::any::Any;
 use std::ptr::addr_eq;
 use std::rc::Rc;
 use serde::{Deserialize, Serialize};
-use crate::map_file::reading::Node;
 
 pub trait GeometricShape: Any{}
 
@@ -31,7 +30,9 @@ impl GeometricShape for Circle {}
 
 #[derive(Serialize, Deserialize)]
 pub struct Line {
-
+    pub color: u32,
+    pub line_width: u32,
+    pub nodes: Vec<Node>,
 }
 
 impl GeometricShape for Line{
@@ -43,4 +44,17 @@ pub struct Area{
 }
 
 impl GeometricShape for Area{
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Node {
+    pub point: Point,
+    pub left_branch: Option<Point>,
+    pub right_branch: Option<Point>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Point {
+    pub x: i64,
+    pub y: i64,
 }

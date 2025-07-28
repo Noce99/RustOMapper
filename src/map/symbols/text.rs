@@ -4,10 +4,10 @@ use crate::map::symbols::punctual::PunctualSymbol;
 use crate::map_file::reading::Node;
 
 pub struct TextSymbol{
-    id: i32,
-    code: String,
-    name: String,
-    description: String,
+    pub id: i32,
+    pub code: String,
+    pub name: String,
+    pub description: String,
 }
 
 impl TextSymbol{
