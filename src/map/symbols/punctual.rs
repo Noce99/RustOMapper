@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use crate::map::elements::PointNode;
 use crate::map::symbols::{area, linear, punctual, text, Symbol, SymbolCommon};
-use crate::map::symbols::geometric_shape::{Ring, GeometricShape, Circle, Point, Line};
+use crate::map::symbols::geometric_shape::{Ring, GeometricShape, Circle, Point, Line, from_number_to_vec_of_nodes};
 use crate::map_file::reading::Node;
 
 pub struct PunctualSymbol{
@@ -35,7 +35,7 @@ impl PunctualSymbol{
 
         for child in point_symbol_node.children.borrow().iter(){
             if child.name != "element"{
-                eprintln!("In a symbol there was a child named {} that I was not expecting, continuing...", child.name);
+                eprintln!("In a point symbol there was a child named {} that I was not expecting, continuing...", child.name);
                 continue;
             }
             let symbol_option = child.search_child_by_name("symbol");
@@ -75,7 +75,7 @@ impl PunctualSymbol{
                         if a_color.parse::<i32>().unwrap() < 0 {
                             continue;
                         }
-                        color = a_color.parse().unwrap();
+                        color = a_color.parse::<u32>().unwrap();
                     }
                     None => {println!("I was not able to fine the attribute 'color' in a line_symbol?"); return None}
                 }
@@ -85,47 +85,10 @@ impl PunctualSymbol{
                     Some(a_line_width) => {line_width = a_line_width.parse().unwrap();}
                     None => {println!("I was not able to fine the attribute 'line_width' in a line_symbol?"); return None}
                 }
-                let mut nodes:Vec<crate::map::symbols::geometric_shape::Node> = Vec::new();
-                let mut i:usize = 0;
-                let mut a_left_branch:Option<Point> = None;
-                loop{
-                    if ! coordinates[i].bayesian {
-                        nodes.push(
-                            crate::map::symbols::geometric_shape::Node {
-                                point: Point {
-                                    x: coordinates[i].x,
-                                    y: coordinates[i].y,
-                                },
-                                left_branch: a_left_branch,
-                                right_branch: None,
-                            }
-                        );
-                        a_left_branch = None;
-                        i += 1;
-                    }else{
-                        nodes.push(
-                            crate::map::symbols::geometric_shape::Node {
-                                point: Point {
-                                    x: coordinates[i].x,
-                                    y: coordinates[i].y,
-                                },
-                                left_branch: None,
-                                right_branch: Some(Point{
-                                    x: coordinates[i+1].x,
-                                    y: coordinates[i+1].y,
-                                }),
-                            }
-                        );
-                        a_left_branch = Some(Point{
-                            x: coordinates[i+2].x,
-                            y: coordinates[i+2].y,
-                        });
-                        i = i+3;
-                    }
-                    if i >= coordinates.len(){
-                        break;
-                    }
-                }
+
+                // Missing much more attributes...
+
+                let nodes = from_number_to_vec_of_nodes(coordinates);
                 let linear_symbol = Line{
                     color,
                     line_width,
@@ -136,6 +99,7 @@ impl PunctualSymbol{
 
                 //geometric_shapes.push(Box::new(area_symbol));
             }else if basic_geometric_symbol.symbol_type == "1" {
+                // Point Symbol
                 assert_eq!(coordinates.len(), 1);
                 assert!(!coordinates[0].bayesian);
                 let x = coordinates[0].x;

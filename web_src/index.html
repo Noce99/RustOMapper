@@ -396,6 +396,23 @@
                         ring.color,
                     )
                 })
+                symbol.lines.forEach(line => {
+                    // drawCircle(
+                    //     focus_x+x,
+                    //     focus_y+y,
+                    //     800,
+                    //     line.color,
+                    // )
+                    drawLine(
+                        x, 
+                        y,
+                        focus_x,
+                        focus_y,
+                        line.nodes,
+                        line.color,
+                        line.line_width,
+                    )
+                })
             }
         })
     }
@@ -422,12 +439,49 @@
         ctx.fill();
     }
 
+    function drawLine(x, y, focus_x, focus_y, nodes, color_id, width) {
+        let color = colors.colors[color_id];
+        let i = 1;
+        while (true){
+            let p0 = nodes[i - 1].point;
+            let p3 = nodes[i].point;
+
+            ctx.beginPath();
+            ctx.strokeStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+            ctx.lineWidth = width * zoom;
+            ctx.lineCap = 'round';  // Makes line ends rounded
+            ctx.lineJoin = 'round'; // Makes line corners rounded
+            
+            ctx.moveTo((x + focus_x + p0.x)*zoom+canvas.width/2, (y + focus_y + p0.y)*zoom+canvas.height/2);
+
+            if (nodes[i].left_branch !== null){
+                let p1 = nodes[i - 1].right_branch;
+                let p2 = nodes[i].left_branch;
+
+                ctx.bezierCurveTo(
+                    (x + focus_x + p1.x) * zoom + canvas.width/2,
+                    (y + focus_y + p1.y) * zoom + canvas.height/2,
+                    (x + focus_x + p2.x) * zoom + canvas.width/2,
+                    (y + focus_y + p2.y) * zoom + canvas.height/2,
+                    (x + focus_x + p3.x) * zoom + canvas.width/2,
+                    (y + focus_y + p3.y) * zoom + canvas.height/2
+                );
+            }else{
+                ctx.lineTo((x + focus_x + p3.x)*zoom+canvas.width/2, (y + focus_y + p3.y)*zoom+canvas.height/2);
+            }
+            ctx.stroke();
+            i += 1;
+            if (i >= nodes.length){
+                break;
+            }
+        }
+    }
+
     function handleWheel(e) {
         // Normalize deltaY across browsers
         const delta = Math.sign(e.deltaY) ||
             Math.sign(e.wheelDelta) * -1 ||
             0;
-        console.log(zoom);
         if (delta < 0) {
             zoom = zoom + mouse_wheel_sensibility*zoom;
 

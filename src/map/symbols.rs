@@ -106,6 +106,7 @@ impl SymbolsBag {
             }
             // Based on the symbol type I create (and add to the bag) different symbols
             if basic_symbol.symbol_type == "2"{
+                // Linear Symbol
                 let linear_symbol_option = linear::LinearSymbol::symbol_from_a_node(&basic_symbol, child);
                 let linear_symbol;
                 match linear_symbol_option{
@@ -114,6 +115,7 @@ impl SymbolsBag {
                 }
                 bag.insert(linear_symbol.get_id(), linear_symbol);
             }else if basic_symbol.symbol_type == "4" || basic_symbol.symbol_type == "16" {
+                // Area Symbol
                 let area_symbol_option = area::AreaSymbol::symbol_from_a_node(&basic_symbol, child);
                 let area_symbol;
                 match area_symbol_option{
@@ -122,6 +124,7 @@ impl SymbolsBag {
                 }
                 bag.insert(area_symbol.get_id(), area_symbol);
             }else if basic_symbol.symbol_type == "1" {
+                // Punctual Symbol
                 let punctual_symbol_option = punctual::PunctualSymbol::symbol_from_a_node(&basic_symbol, child);
                 let punctual_symbol;
                 match punctual_symbol_option{
@@ -130,6 +133,7 @@ impl SymbolsBag {
                 }
                 bag.insert(punctual_symbol.get_id(), punctual_symbol);
             }else if basic_symbol.symbol_type == "8" {
+                // Text Symbol
                 let text_symbol_option = text::TextSymbol::symbol_from_a_node(&basic_symbol, child);
                 let text_symbol;
                 match text_symbol_option{

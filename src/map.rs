@@ -13,6 +13,7 @@ pub struct Map{
     pub colors: ColorsBag,
     pub symbols: SymbolsBag,
     pub elements: ElementsBag,
+    pub map_node: Rc<Node>,
 }
 
 impl Map {
@@ -55,7 +56,8 @@ impl Map {
         Some(Map {
             colors,
             symbols,
-            elements
+            elements,
+            map_node,
         })
     }
 }
