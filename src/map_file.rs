@@ -20,9 +20,7 @@ impl MapFile {
         let a_node_option = Node::node_from_file(self.path.as_str());
         let a_node;
         match a_node_option{
-            None => {
-                eprintln!("I was not able to read the map located in {}", self.path);
-                exit(1)}
+            None => {panic!("I was not able to read the map located in {}", self.path)}
             Some(b_node) => {a_node = b_node}
         }
         let a_map_option = Map::new(a_node);
@@ -30,6 +28,7 @@ impl MapFile {
             None => {panic!("I was not able to create a map object of the map located in {}", self.path)},
             Some(aa_map) => {self.map = Some(aa_map)}
         }
+        
     }
 }
 

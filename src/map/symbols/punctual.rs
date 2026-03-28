@@ -9,7 +9,7 @@ pub struct PunctualSymbol{
     pub code: String,
     pub name: String,
     pub description: String,
-    pub geometric_shapes: Vec<Box<dyn GeometricShape>>,
+    pub geometric_shapes: Vec<Rc<dyn GeometricShape>>,
 }
 
 impl PunctualSymbol{
@@ -21,13 +21,13 @@ impl PunctualSymbol{
             None => {println!("I was not able to fine the 'point symbol' child in this symbol: {:?}", basic_symbol); return None}
         }
 
-        let mut geometric_shapes : Vec<Box<dyn GeometricShape>> = Vec::new();
+        let mut geometric_shapes : Vec<Rc<dyn GeometricShape>> = Vec::new();
         let (ring_option, circle_option) = from_point_symbol_node_to_circle_ring(point_symbol_node.clone(), 0, 0);
         if ring_option.is_some(){
-            geometric_shapes.push(Box::new(ring_option.unwrap()));
+            geometric_shapes.push(Rc::new(ring_option.unwrap()));
         }
         if circle_option.is_some(){
-            geometric_shapes.push(Box::new(circle_option.unwrap()));
+            geometric_shapes.push(Rc::new(circle_option.unwrap()));
         }
 
         // In the point definition itself there is a definition of a geometric shape part of the symbol
@@ -94,7 +94,7 @@ impl PunctualSymbol{
                     line_width,
                     nodes,
                 };
-                geometric_shapes.push(Box::new(linear_symbol));
+                geometric_shapes.push(Rc::new(linear_symbol));
             }else if basic_geometric_symbol.symbol_type == "4" || basic_symbol.symbol_type == "16" {
 
                 //geometric_shapes.push(Box::new(area_symbol));
@@ -112,10 +112,10 @@ impl PunctualSymbol{
                 }
                 let (ring_option, circle_option) = from_point_symbol_node_to_circle_ring(inner_point_symbol_node.clone(), x, y);
                 if ring_option.is_some(){
-                    geometric_shapes.push(Box::new(ring_option.unwrap()));
+                    geometric_shapes.push(Rc::new(ring_option.unwrap()));
                 }
                 if circle_option.is_some(){
-                    geometric_shapes.push(Box::new(circle_option.unwrap()));
+                    geometric_shapes.push(Rc::new(circle_option.unwrap()));
                 }
             }else if basic_geometric_symbol.symbol_type == "8" {
 
@@ -152,6 +152,14 @@ impl Symbol for PunctualSymbol {
 
     fn get_symbol_type(&self) -> String {
         "punctual".to_string()
+    }
+
+    fn get_geometric_shapes(&self) -> & Vec<Rc<dyn GeometricShape>>{
+        & self.geometric_shapes
+    }
+
+    fn get_name(&self) -> &str{
+        & self.name
     }
 }
 

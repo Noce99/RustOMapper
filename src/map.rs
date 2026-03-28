@@ -3,6 +3,7 @@ use crate::map::colors::ColorsBag;
 use crate::map::symbols::SymbolsBag;
 use crate::map::elements::ElementsBag;
 use crate::map_file::reading::Node;
+use crate::map::symbols::geometric_shape::GeometricShapesBag;
 
 pub mod symbols;
 pub mod colors;
@@ -14,6 +15,7 @@ pub struct Map{
     pub symbols: SymbolsBag,
     pub elements: ElementsBag,
     pub map_node: Rc<Node>,
+    pub geometric_shapes: GeometricShapesBag,
 }
 
 impl Map {
@@ -50,14 +52,20 @@ impl Map {
             None => {eprintln!("Not possible to create a SymbolsBag from a Node!"); return None}
             Some(a_symbols_bag) => {symbols = a_symbols_bag}
         }
+
+        // We get the elements
         let parts = map_node.search_child_by_name("parts").unwrap();
         let elements = ElementsBag::elements_from_parts(parts);
+
+        let geometric_shapes = GeometricShapesBag::from_elements_bag(&elements, &symbols);
+
 
         Some(Map {
             colors,
             symbols,
             elements,
             map_node,
+            geometric_shapes
         })
     }
 }

@@ -3,6 +3,8 @@ use std::rc::Rc;
 use std::time::Instant;
 use crate::map_file::reading::Node;
 use std::collections::HashMap;
+use crate::map::symbols::geometric_shape::GeometricShape;
+
 
 pub mod punctual;
 pub mod linear;
@@ -68,6 +70,9 @@ pub trait Symbol: Any{
     fn get_id(&self) -> i32;
 
     fn get_symbol_type(&self) -> String;
+
+    fn get_geometric_shapes(&self) -> & Vec<Rc<dyn GeometricShape>>;
+    fn get_name(&self) -> &str;
 }
 
 pub struct SymbolsBag {
