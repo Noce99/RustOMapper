@@ -212,8 +212,8 @@ fn from_point_symbol_node_to_circle_ring(node: Rc<Node>, x :i64, y :i64) -> (Opt
             // inner_radius = 0
             // outer_width > 0 && outer_color.is_some()
             circle = Some(Circle{
-                x: x as i32,
-                y: y as i32,
+                x: x,
+                y: y,
                 radius: outer_width,
                 color: outer_color.unwrap(),
             });
@@ -227,8 +227,8 @@ fn from_point_symbol_node_to_circle_ring(node: Rc<Node>, x :i64, y :i64) -> (Opt
             // inner_radius > 0
             // inner_color.is_some()
             circle = Some(Circle {
-                x: x as i32,
-                y: y as i32,
+                x: x,
+                y: y,
                 radius: inner_radius,
                 color: inner_color.unwrap(),
             });
@@ -241,8 +241,8 @@ fn from_point_symbol_node_to_circle_ring(node: Rc<Node>, x :i64, y :i64) -> (Opt
             // inner_radius > 0
             // outer_width > 0 && outer_color.is_some()
             ring = Some(Ring{
-                x: x as i32,
-                y: y as i32,
+                x: x,
+                y: y,
                 inner_radius,
                 outer_width,
                 color: outer_color.unwrap(),

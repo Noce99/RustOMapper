@@ -155,6 +155,7 @@
     let colors;
     let symbols;
     let elements;
+    let geometric_shapes;
     let ctx;
     let canvas;
 
@@ -282,12 +283,15 @@
                     colors = message_from_server.colors;
                     symbols = message_from_server.symbols;
                     elements = message_from_server.elements;
+                    geometric_shapes = message_from_server.geometric_shapes;
                     console.log("Colors:");
                     console.log(colors);
                     console.log("Symbols:");
                     console.log(symbols);
                     console.log("Elements:");
                     console.log(elements);
+                    console.log("Geometric Shapes");
+                    console.log(geometric_shapes);
                     open_editor();
                     draw_map();
                 }
@@ -373,46 +377,32 @@
     function draw_map(){
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        elements.elements.forEach(element => {
-            if (element.element_family === "punctual") {
-                let symbol_id = element.symbol;
-                let x = element.coordinates[0].x;
-                let y = element.coordinates[0].y;
-                let symbol = symbols.punctual_symbols[symbol_id];
-                symbol.circles.forEach(circle => {
-                    drawCircle(
-                        focus_x+x+circle.x,
-                        focus_y+y+circle.y,
-                        circle.radius,
-                        circle.color,
-                    )
-                })
-                symbol.rings.forEach(ring => {
-                    drawRing(
-                        focus_x+x+ring.x,
-                        focus_y+y+ring.y,
-                        ring.inner_radius,
-                        ring.outer_width,
-                        ring.color,
-                    )
-                })
-                symbol.lines.forEach(line => {
-                    // drawCircle(
-                    //     focus_x+x,
-                    //     focus_y+y,
-                    //     800,
-                    //     line.color,
-                    // )
-                    drawLine(
-                        x, 
-                        y,
-                        focus_x,
-                        focus_y,
-                        line.nodes,
-                        line.color,
-                        line.line_width,
-                    )
-                })
+        geometric_shapes.g_shapes.forEach(geometric_shape => {
+            if (geometric_shape.ring !== null) {
+                drawRing(
+                    focus_x+geometric_shape.ring.x,
+                    focus_y+geometric_shape.ring.y,
+                    geometric_shape.ring.inner_radius,
+                    geometric_shape.ring.outer_width,
+                    geometric_shape.ring.color,
+                )
+            }else if (geometric_shape.circle !== null) {
+                drawCircle(
+                    focus_x+geometric_shape.circle.x,
+                    focus_y+geometric_shape.circle.y,
+                    geometric_shape.circle.radius,
+                    geometric_shape.circle.color,
+                )
+            }else if (geometric_shape.line !== null) {
+                drawLine(
+                    focus_x,
+                    focus_y,
+                    geometric_shape.line.nodes,
+                    geometric_shape.line.color,
+                    geometric_shape.line.line_width,
+                )
+            }else if (geometric_shape.area !== null) {
+
             }
         })
     }
@@ -439,7 +429,7 @@
         ctx.fill();
     }
 
-    function drawLine(x, y, focus_x, focus_y, nodes, color_id, width) {
+    function drawLine(focus_x, focus_y, nodes, color_id, width) {
         let color = colors.colors[color_id];
         let i = 1;
         while (true){
@@ -452,22 +442,22 @@
             ctx.lineCap = 'round';  // Makes line ends rounded
             ctx.lineJoin = 'round'; // Makes line corners rounded
             
-            ctx.moveTo((x + focus_x + p0.x)*zoom+canvas.width/2, (y + focus_y + p0.y)*zoom+canvas.height/2);
+            ctx.moveTo((focus_x + p0.x)*zoom+canvas.width/2, (focus_y + p0.y)*zoom+canvas.height/2);
 
             if (nodes[i].left_branch !== null){
                 let p1 = nodes[i - 1].right_branch;
                 let p2 = nodes[i].left_branch;
 
                 ctx.bezierCurveTo(
-                    (x + focus_x + p1.x) * zoom + canvas.width/2,
-                    (y + focus_y + p1.y) * zoom + canvas.height/2,
-                    (x + focus_x + p2.x) * zoom + canvas.width/2,
-                    (y + focus_y + p2.y) * zoom + canvas.height/2,
-                    (x + focus_x + p3.x) * zoom + canvas.width/2,
-                    (y + focus_y + p3.y) * zoom + canvas.height/2
+                    (focus_x + p1.x) * zoom + canvas.width/2,
+                    (focus_y + p1.y) * zoom + canvas.height/2,
+                    (focus_x + p2.x) * zoom + canvas.width/2,
+                    (focus_y + p2.y) * zoom + canvas.height/2,
+                    (focus_x + p3.x) * zoom + canvas.width/2,
+                    (focus_y + p3.y) * zoom + canvas.height/2
                 );
             }else{
-                ctx.lineTo((x + focus_x + p3.x)*zoom+canvas.width/2, (y + focus_y + p3.y)*zoom+canvas.height/2);
+                ctx.lineTo((focus_x + p3.x)*zoom+canvas.width/2, (focus_y + p3.y)*zoom+canvas.height/2);
             }
             ctx.stroke();
             i += 1;

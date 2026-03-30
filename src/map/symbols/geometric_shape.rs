@@ -7,15 +7,17 @@ use crate::map::elements::PointNode;
 use crate::map::elements::ElementsBag;
 use crate::map::symbols::SymbolsBag;
 
-pub trait GeometricShape: Any{
+pub trait GeometricShape: Any {
     fn get_color(&self) -> u32;
     fn get_type(&self) -> &str;
+    fn move_by(& self, x: i64, y: i64) -> Rc<dyn GeometricShape>;
+    fn clone_rc(&self) -> Rc<dyn GeometricShape>;
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Ring {
-    pub x: i32,
-    pub y: i32,
+    pub x: i64,
+    pub y: i64,
     pub inner_radius: u32,
     pub outer_width: u32,
     pub color: u32,
@@ -28,12 +30,21 @@ impl GeometricShape for Ring {
     fn get_type(&self) -> &str{
         "ring"
     }
+    fn move_by(& self, x: i64, y: i64) -> Rc<dyn GeometricShape>{
+        let mut to_return = self.clone();
+        to_return.x += x;
+        to_return.y += y;
+        Rc::new(to_return)
+    }
+    fn clone_rc(&self) -> Rc<dyn GeometricShape>{
+        Rc::new(self.clone())
+    }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Circle {
-    pub x: i32,
-    pub y: i32,
+    pub x: i64,
+    pub y: i64,
     pub radius: u32,
     pub color: u32,
 }
@@ -45,11 +56,20 @@ impl GeometricShape for Circle {
     fn get_type(&self) -> &str{
         "circle"
     }
+    fn move_by(& self, x: i64, y: i64) -> Rc<dyn GeometricShape>{
+        let mut to_return = self.clone();
+        to_return.x += x;
+        to_return.y += y;
+        Rc::new(to_return)
+    }
+    fn clone_rc(&self) -> Rc<dyn GeometricShape>{
+        Rc::new(self.clone())
+    }
 }
 
 
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Line {
     pub color: u32,
     pub line_width: u32,
@@ -63,9 +83,42 @@ impl GeometricShape for Line{
     fn get_type(&self) -> &str{
         "line"
     }
+    fn move_by(& self, x: i64, y: i64) -> Rc<dyn GeometricShape>{
+        let mut to_return = self.clone();
+        for i in 0..to_return.nodes.len() {
+            to_return.nodes[i].point.x += x;
+            to_return.nodes[i].point.y += y;
+            match & to_return.nodes[i].left_branch{
+                Some(left_branch) => {
+                    to_return.nodes[i].left_branch = Some(
+                        Point{
+                            x: left_branch.x + x,
+                            y: left_branch.y + y,
+                        }
+                    )
+                }
+                None => {}
+            }
+            match & to_return.nodes[i].right_branch{
+                Some(right_branch) => {
+                    to_return.nodes[i].right_branch = Some(
+                        Point{
+                            x: right_branch.x + x,
+                            y: right_branch.y + y,
+                        }
+                    )
+                }
+                None => {}
+            }
+        }
+        Rc::new(to_return)
+    }
+    fn clone_rc(&self) -> Rc<dyn GeometricShape>{
+        Rc::new(self.clone())
+    }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Area{
     pub color: u32,
 }
@@ -76,6 +129,12 @@ impl GeometricShape for Area{
     }
     fn get_type(&self) -> &str{
         "area"
+    }
+    fn move_by(& self, x: i64, y: i64) -> Rc<dyn GeometricShape>{
+        Rc::new(self.clone())
+    }
+    fn clone_rc(&self) -> Rc<dyn GeometricShape>{
+        Rc::new(self.clone())
     }
 }
 
@@ -149,19 +208,38 @@ impl GeometricShapesBag{
         let start_shapes_bag_creation_time = Instant::now();
 
         for element in & elements_bag.bag {
-            let symbol = symbols.symbol_by_id(element.symbol).unwrap();
+            let symbol = symbols.symbol_by_id(element.symbol);
             
-            println!("Element Symbol = {0}, Element Type = {1}", symbol.get_name(), symbol.get_symbol_type());
-            for geometric_shape in symbol.get_geometric_shapes(){
-                println!("\tType of Geometric Shape = {0}", geometric_shape.get_type());
-                bag.push(Rc::clone(&geometric_shape))
+            match symbol{
+                Some(a_symbol) => {
+                    // println!("Element Symbol = {0}, Element Type = {1}", symbol.get_name(), symbol.get_symbol_type());
+                    for geometric_shape in a_symbol.get_geometric_shapes(){
+                        // println!("\tType of Geometric Shape = {0}", geometric_shape.get_type());
+                        if a_symbol.get_symbol_type() == "punctual"{
+                            let mut new_geometric_shape = geometric_shape.move_by(element.coordinates[0].x, element.coordinates[0].y);
+                            bag.push(new_geometric_shape)
+                        }/*elif a_symbol.get_symbol_type() == "linear"{
+
+                        }elif a_symbol.get_symbol_type() == "area"{
+                        
+                        }*/
+                    }
+                }
+                None => {}
             }
         }
-        println!("Just geometric shapes:");
-        for geometric_shape in & bag{
-            println!("\tType of Geometric Shape = {0}", geometric_shape.get_type());
-        }
+
+        bag.sort_by_key(|item| 10000 - item.get_color());
+
+        // println!("Just geometric shapes:");
+        // for geometric_shape in & bag{
+            // println!("\tType of Geometric Shape = {0} [{1}]", geometric_shape.get_type(), geometric_shape.get_color());
+        // }
+
+
         // TODO: Order the geometric shape by color id to be ready to be rendered!
+
+
         let shapes_bag_time = start_shapes_bag_creation_time.elapsed();
         let shapes_bag_time_s = shapes_bag_time.as_secs();
         let shapes_bag_time_ms = shapes_bag_time.subsec_millis();

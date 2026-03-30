@@ -167,6 +167,11 @@ impl SymbolsBag {
     }
 
     pub fn symbol_by_id(&self, id: i32) -> Option<&Box<dyn Symbol>>{
-        self.bag.get(&id)
+        let to_return = self.bag.get(&id);
+        match to_return{
+            Some(a_return) => {}
+            None => {eprintln!("I was not able to find symbol {0} in the Symbols Bag but a reference was found in an element!?", id)}
+        }
+        to_return
     }
 }

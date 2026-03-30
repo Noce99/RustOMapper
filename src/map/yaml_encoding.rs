@@ -4,6 +4,7 @@ use crate::map::colors::ColorsBag;
 use crate::map::Map;
 use std::any::TypeId;
 use std::collections::HashMap;
+use std::rc::Rc;
 use crate::map::elements::{Element, PointNode};
 use crate::map::symbols::area::AreaSymbol;
 use crate::map::symbols::geometric_shape::{Ring, Area, Line, Circle};
@@ -11,6 +12,7 @@ use crate::map::symbols::linear::LinearSymbol;
 use crate::map::symbols::punctual::PunctualSymbol;
 use crate::map::symbols::SymbolsBag;
 use crate::map::symbols::text::TextSymbol;
+use crate::map::symbols::geometric_shape::GeometricShape;
 
 #[derive(Serialize, Deserialize)]
 struct MapYaml {
@@ -18,6 +20,7 @@ struct MapYaml {
     colors: ColorsYaml,
     symbols: SymbolsYaml,
     elements: ElementsYaml,
+    geometric_shapes: GeometricShapesYaml,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -119,6 +122,71 @@ impl ElementYaml {
             }
         }
     }
+}
+
+#[derive(Serialize, Deserialize)]
+struct GeometricShapeBox {
+    ring: Option<Ring>,
+    circle: Option<Circle>,
+    line: Option<Line>,
+    area: Option<Area>,
+    text: Option<TextSymbolYaml>
+}
+
+impl GeometricShapeBox {
+    fn new(geometric_shape: Rc<dyn GeometricShape>) -> GeometricShapeBox{
+        let mut ring: Option<Ring> = None;
+        let mut circle: Option<Circle> = None;
+        let mut line: Option<Line> = None;
+        let mut area: Option<Area> = None;
+        let mut text: Option<TextSymbolYaml> = None;
+
+        if let Some(a_ring) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Ring>() {
+            ring = Some(
+                Ring {
+                    x: a_ring.x,
+                    y: a_ring.y,
+                    inner_radius: a_ring.inner_radius,
+                    outer_width: a_ring.outer_width,
+                    color: a_ring.color,
+                }
+            )
+        }else if let Some(a_circle) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Circle>() {
+            circle = Some(
+                Circle {
+                    x: a_circle.x,
+                    y: a_circle.y,
+                    radius: a_circle.radius,
+                    color: a_circle.color,
+                }
+            )
+        }else if let Some(a_line) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Line>() {
+            line = Some(
+                Line {
+                    color: a_line.color,
+                    line_width: a_line.line_width,
+                    nodes: a_line.nodes.clone(),
+                }
+            )
+        }else if let Some(area) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Area>() {
+
+        }else if let Some(text) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<TextSymbol>() {
+
+        }
+        GeometricShapeBox{
+            ring:ring,
+            circle:circle,
+            line:line,
+            area:area,
+            text:text,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+struct GeometricShapesYaml {
+    num: usize,
+    g_shapes: Vec<GeometricShapeBox>,
 }
 
 pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
@@ -248,11 +316,24 @@ pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
         }
     }
 
+    // GEOMETRIC SHAPES
+    let mut geometric_shapes_yaml = GeometricShapesYaml{
+        num: 0,
+        g_shapes: Vec::new(),
+    };
+    for geometric_shapes in &map.geometric_shapes.bag {
+        let a_geometric_shape_box = GeometricShapeBox::new(geometric_shapes.clone());
+        geometric_shapes_yaml.num += 1;
+        geometric_shapes_yaml.g_shapes.push(a_geometric_shape_box);
+    }
+
+
     let a_map_yaml = MapYaml{
         response_type: "map".to_string(),
         colors: colors_yaml,
         symbols: symbols_yaml,
         elements: elements_yaml,
+        geometric_shapes: geometric_shapes_yaml,
     };
     Ok(serde_json::to_string_pretty(&a_map_yaml).unwrap())
 }
