@@ -1,6 +1,5 @@
 use std::any::Any;
 use std::rc::Rc;
-use std::time::Instant;
 use serde::{Deserialize, Serialize};
 use crate::map::elements::PointNode;
 use crate::map::elements::ElementsBag;
@@ -202,10 +201,8 @@ pub struct GeometricShapesBag{
 
 impl GeometricShapesBag{
     pub fn from_elements_bag(elements_bag : & ElementsBag, symbols : & SymbolsBag) -> GeometricShapesBag{
-        let mut bag : Vec<Rc<dyn GeometricShape>> = Vec::new();
-
-        let start_shapes_bag_creation_time = Instant::now();
-
+        let mut bag : Vec<Rc<dyn GeometricShape>> = Vec::new();        
+        let mut max_color_id : u32 = 0;
         for element in & elements_bag.bag {
             let symbol = symbols.symbol_by_id(element.symbol);
             
@@ -216,6 +213,9 @@ impl GeometricShapesBag{
                         // println!("\tType of Geometric Shape = {0}", geometric_shape.get_type());
                         if a_symbol.get_symbol_type() == "punctual"{
                             let new_geometric_shape = geometric_shape.move_by(element.coordinates[0].x, element.coordinates[0].y);
+                            if new_geometric_shape.get_color() > max_color_id{
+                                max_color_id = new_geometric_shape.get_color();
+                            }
                             bag.push(new_geometric_shape)
                         }/*elif a_symbol.get_symbol_type() == "linear"{
 
@@ -228,22 +228,12 @@ impl GeometricShapesBag{
             }
         }
 
-        bag.sort_by_key(|item| 10000 - item.get_color());
+        bag.sort_by_key(|item| max_color_id - item.get_color());
 
         // println!("Just geometric shapes:");
         // for geometric_shape in & bag{
-            // println!("\tType of Geometric Shape = {0} [{1}]", geometric_shape.get_type(), geometric_shape.get_color());
+        //     println!("\tType of Geometric Shape = {0}", geometric_shape.get_color());
         // }
-
-
-        // TODO: Order the geometric shape by color id to be ready to be rendered!
-
-
-        let shapes_bag_time = start_shapes_bag_creation_time.elapsed();
-        let shapes_bag_time_s = shapes_bag_time.as_secs();
-        let shapes_bag_time_ms = shapes_bag_time.subsec_millis();
-        println!("Created the Geometric Shapes Bag in {shapes_bag_time_s} s and \
-         {shapes_bag_time_ms} ms.");
         GeometricShapesBag{ bag: bag }
     }
 }

@@ -1,6 +1,5 @@
 use std::any::Any;
 use std::rc::Rc;
-use std::time::Instant;
 use crate::map_file::reading::Node;
 use std::collections::HashMap;
 use crate::map::symbols::geometric_shape::GeometricShape;
@@ -27,7 +26,7 @@ impl SymbolCommon{
         let symbol_type: String;
         match type_attribute_option{
             Some(a_type) => {symbol_type = a_type}
-            None => {println!("I was not able to fine the 'type' attribute in a symbol node? WTF?"); return None}
+            None => {eprintln!("I was not able to fine the 'type' attribute in a symbol node? WTF?"); return None}
         }
         let id_attribute_option = node.search_attribute_by_name("id");
         let id: i32;
@@ -39,7 +38,7 @@ impl SymbolCommon{
         let code: String;
         match code_attribute_option{
             Some(a_code) => {code = a_code}
-            None => {println!("I was not able to fine the 'code' attribute in a symbol node? WTF?"); return None}
+            None => {eprintln!("I was not able to fine the 'code' attribute in a symbol node? WTF?"); return None}
         }
         let name_attribute_option = node.search_attribute_by_name("name");
         let name: String;
@@ -95,8 +94,6 @@ impl SymbolsBag {
     }
 
     pub fn symbols_from_a_node(symbols_node: Rc<Node>)-> Option<Self>{
-        println!("I'm going to create a Symbols Bag!");
-        let start_symbols_bag_creation_time = Instant::now();
         let mut bag: HashMap<i32, Box<dyn Symbol>> = HashMap::new();
         for child in symbols_node.children.borrow().iter() {
             if child.name != "symbol"{
@@ -147,14 +144,9 @@ impl SymbolsBag {
                 }
                 bag.insert(text_symbol.get_id(), text_symbol);
             }else{
-                println!("Find out a strange type for symbol ({}) [type={}]", basic_symbol.name, basic_symbol.symbol_type);
+                eprintln!("Find out a strange type for symbol ({}) [type={}]", basic_symbol.name, basic_symbol.symbol_type);
             }
         }
-        let symbols_bag_time = start_symbols_bag_creation_time.elapsed();
-        let symbols_bag_time_s = symbols_bag_time.as_secs();
-        let symbols_bag_time_ms = symbols_bag_time.subsec_millis();
-        println!("Created the Symbols Bag in {symbols_bag_time_s} s and \
-         {symbols_bag_time_ms} ms.");
         Some(SymbolsBag{
             bag
         })

@@ -6,7 +6,6 @@ use std::fs::File;
 use std::io::BufReader;
 use std::rc::Rc;
 // use std::rc::Weak;
-use std::time::Instant;
 
 // use crate::map::symbols::SymbolsBag;
 pub struct Node {
@@ -43,8 +42,6 @@ impl Node {
     }
     pub fn node_from_file(file_path: &str) -> Option<Rc<Self>> {
         // (1) Let's read the file
-        println!("I'm going to open: {file_path}");
-        let start_file_reading_time = Instant::now();
         let reader_result = Reader::from_file(file_path);
         let mut reader: Reader<BufReader<File>>;
         match reader_result{
@@ -68,12 +65,6 @@ impl Node {
         });
         // (4) Let's start populating the Node reading the xml
         bigger_ancestor.continue_xml_exploration(& mut reader);
-        // (5) Let's debug the time needed to read the xml
-        let file_reading_time = start_file_reading_time.elapsed();
-        let file_reading_time_s = file_reading_time.as_secs();
-        let file_reading_time_ms = file_reading_time.subsec_millis();
-        println!("Built the node tree from the xml file in {file_reading_time_s} s and \
-         {file_reading_time_ms} ms.");
         Some(bigger_ancestor)
     }
     pub fn set_inner_text(&self, inner_text : String){

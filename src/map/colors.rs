@@ -24,34 +24,34 @@ impl ColorsBag {
         for child in a_colors_node.children.borrow().iter() {
             let priority: u32;
             match child.search_attribute_by_name("priority"){
-                None => {println!("Not able to find 'priority' attribute in this Node!"); println!("{}", child); return None}
+                None => {eprintln!("Not able to find 'priority' attribute in this Node!"); eprintln!("{}", child); return None}
                 Some(a_priority) => {priority = a_priority.parse().unwrap()}
             }
             let name: String;
             match child.search_attribute_by_name("name"){
-                None => {println!("Not able to find 'name' attribute in this Node!"); println!("{}", child); return None}
+                None => {eprintln!("Not able to find 'name' attribute in this Node!"); eprintln!("{}", child); return None}
                 Some(a_name) => {name = a_name}
             }
             let rgb_option: Option<Rc<Node>> = child.search_child_by_name("rgb");
             let rgb: Rc<Node>;
             match rgb_option {
-                None => {println!("Not possible to fina 'rgb' child in the current Node!"); println!("{}", child); return None}
+                None => {eprintln!("Not possible to fina 'rgb' child in the current Node!"); eprintln!("{}", child); return None}
                 Some(a_rgb) => {rgb = a_rgb}
             }
 
             let r: f32;
             match rgb.search_attribute_by_name("r"){
-                None => {println!("Not able to find 'r' in this Node!"); println!("{}", rgb); return None}
+                None => {eprintln!("Not able to find 'r' in this Node!"); eprintln!("{}", rgb); return None}
                 Some(a_r) => {r = a_r.parse().unwrap()}
             }
             let g: f32;
             match rgb.search_attribute_by_name("g"){
-                None => {println!("Not able to find 'g' in this Node!"); println!("{}", rgb); return None}
+                None => {eprintln!("Not able to find 'g' in this Node!"); eprintln!("{}", rgb); return None}
                 Some(a_g) => {g = a_g.parse().unwrap()}
             }
             let b: f32;
             match rgb.search_attribute_by_name("b"){
-                None => {println!("Not able to find 'b' in this Node!"); println!("{}", rgb); return None}
+                None => {eprintln!("Not able to find 'b' in this Node!"); eprintln!("{}", rgb); return None}
                 Some(a_b) => {b = a_b.parse().unwrap()}
             }
             let r: u8 = (r*255.) as u8;

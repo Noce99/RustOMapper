@@ -1,5 +1,4 @@
 use crate::map::Map;
-use crate::map_file::reading::Node;
 use std::{env, fs};
 
 pub mod reading;
@@ -16,18 +15,7 @@ impl MapFile {
         MapFile { path, map: None }
     }
     pub fn load(&mut self) {
-        let a_node_option = Node::node_from_file(self.path.as_str());
-        let a_node;
-        match a_node_option{
-            None => {panic!("I was not able to read the map located in {}", self.path)}
-            Some(b_node) => {a_node = b_node}
-        }
-        let a_map_option = Map::new(a_node);
-        match a_map_option {
-            None => {panic!("I was not able to create a map object of the map located in {}", self.path)},
-            Some(aa_map) => {self.map = Some(aa_map)}
-        }
-        
+        self.map = Map::new(self.path.as_str());
     }
 }
 

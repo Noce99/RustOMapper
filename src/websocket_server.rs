@@ -95,11 +95,10 @@ impl WebSocketServer {
                 match websocket.read() {
                     Ok(msg) => {
                         let msg_text = msg.to_text().unwrap();
-                        println!("Received:\n{}", msg_text);
+                        println!("Received websocket request:\n\t{}", msg_text);
 
                         match self.parse_request(msg_text) {
                             Ok(response) => {
-                                println!("Parsing Ok!");
                                 match websocket.send(response.into()) {
                                     Ok(_) => (),
                                     Err(e) => {
@@ -109,7 +108,7 @@ impl WebSocketServer {
                                 }
                             },
                             Err(e) => {
-                                println!("Parsing Not Ok!");
+                                eprintln!("Error parsing the websocket request!");
                                 let error = ErrorResponse{
                                     response_type : "error".to_string(),
                                     error: e.to_string(),
