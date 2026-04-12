@@ -1,8 +1,7 @@
 use std::rc::Rc;
 use crate::map::symbols::{Symbol, SymbolCommon};
-use crate::map::symbols::linear::LinearSymbol;
 use crate::map_file::reading::Node;
-use crate::map::symbols::geometric_shape::{Ring, GeometricShape, Circle, Point, Line, from_number_to_vec_of_nodes};
+use crate::map::symbols::geometric_shape::GeometricShape;
 
 
 pub struct AreaSymbol{
@@ -14,8 +13,8 @@ pub struct AreaSymbol{
 }
 
 impl AreaSymbol{
-    pub fn symbol_from_a_node(basic_symbol: &SymbolCommon, node: &Rc<Node>) -> Option<Box<Self>> {
-        let mut geometric_shapes : Vec<Rc<dyn GeometricShape>> = Vec::new();
+    pub fn symbol_from_a_node(basic_symbol: &SymbolCommon, _node: &Rc<Node>) -> Option<Box<Self>> {
+        let geometric_shapes : Vec<Rc<dyn GeometricShape>> = Vec::new();
         Some(Box::new(AreaSymbol{
             id: basic_symbol.id.clone(),
             code: basic_symbol.code.clone(),
@@ -27,13 +26,13 @@ impl AreaSymbol{
 }
 
 impl Symbol for AreaSymbol{
-    fn render(&self) {
-        todo!()
-    }
+    // fn render(&self) {
+    //     todo!()
+    // }
 
-    fn show(&self) -> String{
-        format!("{} [Area Symbol] ({})", self.name, self.id)
-    }
+    // fn show(&self) -> String{
+    //     format!("{} [Area Symbol] ({})", self.name, self.id)
+    // }
 
     fn get_id(&self) -> i32 {
         self.id
@@ -47,7 +46,7 @@ impl Symbol for AreaSymbol{
         & self.geometric_shapes
     }
 
-    fn get_name(&self) -> &str{
-        & self.name
-    }
+    // fn get_name(&self) -> &str{
+    //     & self.name
+    // }
 }

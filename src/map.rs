@@ -14,7 +14,7 @@ pub struct Map{
     pub colors: ColorsBag,
     pub symbols: SymbolsBag,
     pub elements: ElementsBag,
-    pub map_node: Rc<Node>,
+    // pub map_node: Rc<Node>,
     pub geometric_shapes: GeometricShapesBag,
 }
 
@@ -64,7 +64,7 @@ impl Map {
             colors,
             symbols,
             elements,
-            map_node,
+            // map_node,
             geometric_shapes
         })
     }

@@ -13,7 +13,7 @@ pub mod text;
 pub mod geometric_shape;
 
 #[derive(Debug)]
-struct SymbolCommon{
+pub struct SymbolCommon{
     symbol_type: String,
     id: i32,
     code: String,
@@ -64,15 +64,15 @@ impl SymbolCommon{
 }
 
 pub trait Symbol: Any{
-    fn render(&self);
-    fn show(&self) -> String;
+    // fn render(&self);
+    // fn show(&self) -> String;
 
     fn get_id(&self) -> i32;
 
     fn get_symbol_type(&self) -> String;
 
     fn get_geometric_shapes(&self) -> & Vec<Rc<dyn GeometricShape>>;
-    fn get_name(&self) -> &str;
+    // fn get_name(&self) -> &str;
 }
 
 pub struct SymbolsBag {
@@ -84,12 +84,12 @@ pub struct SymbolsBag {
 }
 
 impl SymbolsBag {
-    pub fn new() -> Self {
-        Self { bag: HashMap::new() }
-    }
-    pub fn insert(&mut self, symbol: Box<dyn Symbol>) {
-        self.bag.insert(symbol.get_id(), symbol);
-    }
+    // pub fn new() -> Self {
+    //     Self { bag: HashMap::new() }
+    // }
+    // pub fn insert(&mut self, symbol: Box<dyn Symbol>) {
+    //     self.bag.insert(symbol.get_id(), symbol);
+    // }
     pub fn len(&self) -> usize {
         self.bag.len()
     }
@@ -160,16 +160,16 @@ impl SymbolsBag {
         })
     }
 
-    pub fn show(&self){
-        for (id, symbol) in &self.bag{
-            println!("{}", symbol.show())
-        }
-    }
+    // pub fn show(&self){
+    //     for (id, symbol) in &self.bag{
+    //         println!("{}", symbol.show())
+    //     }
+    // }
 
     pub fn symbol_by_id(&self, id: i32) -> Option<&Box<dyn Symbol>>{
         let to_return = self.bag.get(&id);
         match to_return{
-            Some(a_return) => {}
+            Some(_) => {}
             None => {eprintln!("I was not able to find symbol {0} in the Symbols Bag but a reference was found in an element!?", id)}
         }
         to_return

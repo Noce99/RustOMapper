@@ -1,6 +1,5 @@
 use std::rc::Rc;
 use crate::map::symbols::{Symbol, SymbolCommon};
-use crate::map::symbols::punctual::PunctualSymbol;
 use crate::map_file::reading::Node;
 use crate::map::symbols::geometric_shape::{GeometricShape};
 
@@ -14,7 +13,7 @@ pub struct TextSymbol{
 }
 
 impl TextSymbol{
-    pub fn symbol_from_a_node(basic_symbol: &SymbolCommon, node: &Rc<Node>) -> Option<Box<Self>> {
+    pub fn symbol_from_a_node(basic_symbol: &SymbolCommon, _node: &Rc<Node>) -> Option<Box<Self>> {
         let empty: Vec<Rc<dyn GeometricShape>> = Vec::new();
         Some(Box::new(TextSymbol{
             id: basic_symbol.id.clone(),
@@ -26,13 +25,13 @@ impl TextSymbol{
 }
 
 impl Symbol for TextSymbol{
-    fn render(&self) {
-        todo!()
-    }
+    // fn render(&self) {
+    //     todo!()
+    // }
 
-    fn show(&self) -> String{
-        format!("{} [Text Symbol] ({})", self.name, self.id)
-    }
+    // fn show(&self) -> String{
+    //     format!("{} [Text Symbol] ({})", self.name, self.id)
+    // }
 
     fn get_id(&self) -> i32 {
         self.id
@@ -46,7 +45,7 @@ impl Symbol for TextSymbol{
         & self.geometric_shapes
     }
 
-    fn get_name(&self) -> &str{
-        & self.name
-    }
+    // fn get_name(&self) -> &str{
+    //     & self.name
+    // }
 }

@@ -1,8 +1,6 @@
-use std::any::{type_name, Any};
-use serde::{Deserialize, Serialize, Serializer};
-use crate::map::colors::ColorsBag;
+use std::any::Any;
+use serde::{Deserialize, Serialize};
 use crate::map::Map;
-use std::any::TypeId;
 use std::collections::HashMap;
 use std::rc::Rc;
 use crate::map::elements::{Element, PointNode};
@@ -138,8 +136,8 @@ impl GeometricShapeBox {
         let mut ring: Option<Ring> = None;
         let mut circle: Option<Circle> = None;
         let mut line: Option<Line> = None;
-        let mut area: Option<Area> = None;
-        let mut text: Option<TextSymbolYaml> = None;
+        let area: Option<Area> = None;
+        let text: Option<TextSymbolYaml> = None;
 
         if let Some(a_ring) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Ring>() {
             ring = Some(
@@ -168,9 +166,9 @@ impl GeometricShapeBox {
                     nodes: a_line.nodes.clone(),
                 }
             )
-        }else if let Some(area) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Area>() {
+        }else if let Some(_area) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Area>() {
 
-        }else if let Some(text) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<TextSymbol>() {
+        }else if let Some(_text) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<TextSymbol>() {
 
         }
         GeometricShapeBox{
@@ -219,8 +217,8 @@ pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
             let mut rings: Vec<Ring> = Vec::new();
             let mut circles: Vec<Circle> = Vec::new();
             let mut lines: Vec<Line> = Vec::new();
-            let mut areas: Vec<Area> = Vec::new();
-            let mut texts: Vec<TextSymbolYaml> = Vec::new();
+            let areas: Vec<Area> = Vec::new();
+            let texts: Vec<TextSymbolYaml> = Vec::new();
             for geometric_shape in &punctual_symbol.geometric_shapes{
                 if let Some(a_ring) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Ring>() {
                     rings.push(
@@ -249,9 +247,9 @@ pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
                             nodes: line.nodes.clone(),
                         }
                     );
-                }else if let Some(area) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Area>() {
+                }else if let Some(_area) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Area>() {
 
-                }else if let Some(text) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<TextSymbol>() {
+                }else if let Some(_text) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<TextSymbol>() {
 
                 }
             }

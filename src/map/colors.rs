@@ -69,15 +69,15 @@ impl ColorsBag {
         }
         Some(Self { bag: a_bag_of_color })
     }
-    pub fn insert(&mut self, color: Color) {
-        self.bag.push(color);
-    }
+    // pub fn insert(&mut self, color: Color) {
+    //     self.bag.push(color);
+    // }
     pub fn len(&self) -> usize {
         self.bag.len()
     }
-    pub fn show(&self) {
-        for color in self.bag.iter() {
-            println!("{} ({}) [{}; {}; {}]", color.name, color.priority, color.r, color.g, color.b);
-        }
-    }
+    // pub fn show(&self) {
+    //     for color in self.bag.iter() {
+    //         println!("{} ({}) [{}; {}; {}]", color.name, color.priority, color.r, color.g, color.b);
+    //     }
+    // }
 }

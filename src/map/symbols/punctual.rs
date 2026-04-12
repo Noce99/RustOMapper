@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use crate::map::elements::PointNode;
-use crate::map::symbols::{area, linear, punctual, text, Symbol, SymbolCommon};
-use crate::map::symbols::geometric_shape::{Ring, GeometricShape, Circle, Point, Line, from_number_to_vec_of_nodes};
+use crate::map::symbols::{Symbol, SymbolCommon};
+use crate::map::symbols::geometric_shape::{Ring, GeometricShape, Circle, Line, from_number_to_vec_of_nodes};
 use crate::map_file::reading::Node;
 
 pub struct PunctualSymbol{
@@ -137,14 +137,14 @@ impl PunctualSymbol{
 }
 
 impl Symbol for PunctualSymbol {
-    fn render(&self) {
-        todo!()
-    }
+    // fn render(&self) {
+    //     todo!()
+    // }
 
 
-    fn show(&self) -> String {
-        format!("{} [Punctual Symbol] ({})", self.name, self.id)
-    }
+    // fn show(&self) -> String {
+    //     format!("{} [Punctual Symbol] ({})", self.name, self.id)
+    // }
 
     fn get_id(&self) -> i32 {
         self.id
@@ -158,9 +158,9 @@ impl Symbol for PunctualSymbol {
         & self.geometric_shapes
     }
 
-    fn get_name(&self) -> &str{
-        & self.name
-    }
+    // fn get_name(&self) -> &str{
+    //     & self.name
+    // }
 }
 
 fn from_point_symbol_node_to_circle_ring(node: Rc<Node>, x :i64, y :i64) -> (Option<Ring>, Option<Circle>){

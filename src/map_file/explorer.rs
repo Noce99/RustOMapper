@@ -1,4 +1,3 @@
-use std::cell::{Ref, RefCell};
 use crate::map_file::reading::Node;
 use std::io;
 use std::num::ParseIntError;
@@ -46,6 +45,7 @@ fn select_children(a_node: &Rc<Node>) -> Option<Rc<Node>>{
         }
     }
 }
+
 pub fn explore_children(an_object: Rc<Node>){
     let selected_child = select_children(&an_object);
     match selected_child {

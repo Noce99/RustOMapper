@@ -1,11 +1,10 @@
-use std::process::exit;
 use crate::map::Map;
 use crate::map_file::reading::Node;
 use std::{env, fs};
 
 pub mod reading;
 pub mod writing;
-pub mod explorer;
+// pub mod explorer;
 
 pub struct MapFile {
     pub path: String,

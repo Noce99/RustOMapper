@@ -1,8 +1,8 @@
 use std::env;
-use std::net::{TcpListener, TcpStream};
+use std::net::TcpListener;
 use std::process::exit;
 use std::string::ToString;
-use tungstenite::{accept, WebSocket};
+use tungstenite::accept;
 use serde_json;
 use serde::{Deserialize, Serialize};
 use crate::map_file::MapFile;
@@ -157,7 +157,7 @@ impl WebSocketServer {
             },
             "get_map" => {
                 let mut found = false;
-                for mut mapfile in &mut self.maps{
+                for mapfile in &mut self.maps{
                     if mapfile.path == incoming.content {
                         found = true;
                         mapfile.load();

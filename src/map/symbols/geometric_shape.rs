@@ -1,5 +1,4 @@
 use std::any::Any;
-use std::ptr::addr_eq;
 use std::rc::Rc;
 use std::time::Instant;
 use serde::{Deserialize, Serialize};
@@ -9,9 +8,9 @@ use crate::map::symbols::SymbolsBag;
 
 pub trait GeometricShape: Any {
     fn get_color(&self) -> u32;
-    fn get_type(&self) -> &str;
+    // fn get_type(&self) -> &str;
     fn move_by(& self, x: i64, y: i64) -> Rc<dyn GeometricShape>;
-    fn clone_rc(&self) -> Rc<dyn GeometricShape>;
+    // fn clone_rc(&self) -> Rc<dyn GeometricShape>;
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -27,18 +26,18 @@ impl GeometricShape for Ring {
     fn get_color(&self) -> u32{
         self.color
     }
-    fn get_type(&self) -> &str{
-        "ring"
-    }
+    // fn get_type(&self) -> &str{
+    //     "ring"
+    // }
     fn move_by(& self, x: i64, y: i64) -> Rc<dyn GeometricShape>{
         let mut to_return = self.clone();
         to_return.x += x;
         to_return.y += y;
         Rc::new(to_return)
     }
-    fn clone_rc(&self) -> Rc<dyn GeometricShape>{
-        Rc::new(self.clone())
-    }
+    // fn clone_rc(&self) -> Rc<dyn GeometricShape>{
+    //     Rc::new(self.clone())
+    // }
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -53,18 +52,18 @@ impl GeometricShape for Circle {
     fn get_color(&self) -> u32{
         self.color
     }
-    fn get_type(&self) -> &str{
-        "circle"
-    }
+    // fn get_type(&self) -> &str{
+    //     "circle"
+    // }
     fn move_by(& self, x: i64, y: i64) -> Rc<dyn GeometricShape>{
         let mut to_return = self.clone();
         to_return.x += x;
         to_return.y += y;
         Rc::new(to_return)
     }
-    fn clone_rc(&self) -> Rc<dyn GeometricShape>{
-        Rc::new(self.clone())
-    }
+    // fn clone_rc(&self) -> Rc<dyn GeometricShape>{
+    //     Rc::new(self.clone())
+    // }
 }
 
 
@@ -80,9 +79,9 @@ impl GeometricShape for Line{
     fn get_color(&self) -> u32{
         self.color
     }
-    fn get_type(&self) -> &str{
-        "line"
-    }
+    // fn get_type(&self) -> &str{
+    //     "line"
+    // }
     fn move_by(& self, x: i64, y: i64) -> Rc<dyn GeometricShape>{
         let mut to_return = self.clone();
         for i in 0..to_return.nodes.len() {
@@ -113,9 +112,9 @@ impl GeometricShape for Line{
         }
         Rc::new(to_return)
     }
-    fn clone_rc(&self) -> Rc<dyn GeometricShape>{
-        Rc::new(self.clone())
-    }
+    // fn clone_rc(&self) -> Rc<dyn GeometricShape>{
+    //     Rc::new(self.clone())
+    // }
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -127,15 +126,15 @@ impl GeometricShape for Area{
     fn get_color(&self) -> u32{
         self.color
     }
-    fn get_type(&self) -> &str{
-        "area"
-    }
-    fn move_by(& self, x: i64, y: i64) -> Rc<dyn GeometricShape>{
+    // fn get_type(&self) -> &str{
+    //     "area"
+    // }
+    fn move_by(& self, _x: i64, _y: i64) -> Rc<dyn GeometricShape>{
         Rc::new(self.clone())
     }
-    fn clone_rc(&self) -> Rc<dyn GeometricShape>{
-        Rc::new(self.clone())
-    }
+    // fn clone_rc(&self) -> Rc<dyn GeometricShape>{
+    //     Rc::new(self.clone())
+    // }
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -216,7 +215,7 @@ impl GeometricShapesBag{
                     for geometric_shape in a_symbol.get_geometric_shapes(){
                         // println!("\tType of Geometric Shape = {0}", geometric_shape.get_type());
                         if a_symbol.get_symbol_type() == "punctual"{
-                            let mut new_geometric_shape = geometric_shape.move_by(element.coordinates[0].x, element.coordinates[0].y);
+                            let new_geometric_shape = geometric_shape.move_by(element.coordinates[0].x, element.coordinates[0].y);
                             bag.push(new_geometric_shape)
                         }/*elif a_symbol.get_symbol_type() == "linear"{
 
