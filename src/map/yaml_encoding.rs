@@ -136,7 +136,7 @@ impl GeometricShapeBox {
         let mut ring: Option<Ring> = None;
         let mut circle: Option<Circle> = None;
         let mut line: Option<Line> = None;
-        let area: Option<Area> = None;
+        let mut area: Option<Area> = None;
         let text: Option<TextSymbolYaml> = None;
 
         if let Some(a_ring) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Ring>() {
@@ -166,8 +166,13 @@ impl GeometricShapeBox {
                     nodes: a_line.nodes.clone(),
                 }
             )
-        }else if let Some(_area) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Area>() {
-
+        }else if let Some(an_area) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<Area>() {
+            area = Some(
+                Area {
+                    color: an_area.color,
+                    nodes: an_area.nodes.clone(),
+                }
+            )
         }else if let Some(_text) =(geometric_shape.as_ref() as &dyn Any).downcast_ref::<TextSymbol>() {
 
         }

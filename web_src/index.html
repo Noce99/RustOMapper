@@ -402,7 +402,12 @@
                     geometric_shape.line.line_width,
                 )
             }else if (geometric_shape.area !== null) {
-
+                drawArea(
+                    focus_x,
+                    focus_y,
+                    geometric_shape.area.nodes,
+                    geometric_shape.area.color,
+                )
             }
         })
     }
@@ -462,6 +467,40 @@
             ctx.stroke();
             i += 1;
             if (i >= nodes.length){
+                break;
+            }
+        }
+    }
+
+    function drawArea(focus_x, focus_y, nodes, color_id){
+        let color = colors.colors[color_id];
+        let i = 1;
+
+        ctx.beginPath();
+        let p0 = nodes[0].point;
+        ctx.moveTo((focus_x + p0.x)*zoom+canvas.width/2, (focus_y + p0.y)*zoom+canvas.height/2);
+        while (true){
+            let p3 = nodes[i].point;
+            if (nodes[i].left_branch !== null){
+                let p1 = nodes[i - 1].right_branch;
+                let p2 = nodes[i].left_branch;
+
+                ctx.bezierCurveTo(
+                    (focus_x + p1.x) * zoom + canvas.width/2,
+                    (focus_y + p1.y) * zoom + canvas.height/2,
+                    (focus_x + p2.x) * zoom + canvas.width/2,
+                    (focus_y + p2.y) * zoom + canvas.height/2,
+                    (focus_x + p3.x) * zoom + canvas.width/2,
+                    (focus_y + p3.y) * zoom + canvas.height/2
+                );
+            }else{
+                ctx.lineTo((focus_x + p3.x)*zoom+canvas.width/2, (focus_y + p3.y)*zoom+canvas.height/2);
+            }
+            i += 1;
+            if (i >= nodes.length){
+                ctx.closePath();
+                ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;;
+                ctx.fill();
                 break;
             }
         }

@@ -15,7 +15,7 @@ impl MapFile {
         MapFile { path, map: None }
     }
     pub fn load(&mut self) {
-        self.map = Map::new(self.path.as_str());
+        self.map = Map::new(self.path.as_str(), true);
     }
 }
 

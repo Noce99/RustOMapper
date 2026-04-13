@@ -22,36 +22,26 @@ pub struct SymbolCommon{
 
 impl SymbolCommon{
     fn new_from_node(node: &Rc<Node>) -> Option<Self> {
-        let type_attribute_option = node.search_attribute_by_name("type");
-        let symbol_type: String;
-        match type_attribute_option{
-            Some(a_type) => {symbol_type = a_type}
+        let symbol_type = match node.search_attribute_by_name("type"){
+            Some(a_type) => a_type,
             None => {eprintln!("I was not able to fine the 'type' attribute in a symbol node? WTF?"); return None}
-        }
-        let id_attribute_option = node.search_attribute_by_name("id");
-        let id: i32;
-        match id_attribute_option{
-            Some(an_id) => {id = an_id.parse().unwrap()}
-            None => {id = 0;}
-        }
-        let code_attribute_option = node.search_attribute_by_name("code");
-        let code: String;
-        match code_attribute_option{
-            Some(a_code) => {code = a_code}
+        };
+        let id = match node.search_attribute_by_name("id"){
+            Some(an_id) => an_id.parse().unwrap(),
+            None => 0
+        };
+        let code = match node.search_attribute_by_name("code"){
+            Some(a_code) => a_code,
             None => {eprintln!("I was not able to fine the 'code' attribute in a symbol node? WTF?"); return None}
-        }
-        let name_attribute_option = node.search_attribute_by_name("name");
-        let name: String;
-        match name_attribute_option{
-            Some(a_name) => {name = a_name}
-            None => {name = String::new()}
-        }
-        let description_attribute_option = node.search_attribute_by_name("description");
-        let description: String;
-        match description_attribute_option {
-            Some(a_description) => {description = a_description}
-            None => { description = String::new()}
-        }
+        };
+        let name = match node.search_attribute_by_name("name"){
+            Some(a_name) => a_name,
+            None => String::new(),
+        };
+        let description = match node.search_attribute_by_name("description") {
+            Some(a_description) => a_description,
+            None => String::new(),
+        };
         Some(Self{
             symbol_type,
             id,
@@ -100,48 +90,38 @@ impl SymbolsBag {
                 continue;
             }
             // We create a Symbol Common to get the basic information that I need for all symbol type
-            let a_symbol_option = SymbolCommon::new_from_node(child);
-            let basic_symbol;
-            match a_symbol_option {
-                Some(a_symbol) => {basic_symbol = a_symbol}
+            let basic_symbol = match SymbolCommon::new_from_node(child) {
+                Some(a_symbol) => a_symbol,
                 None => {eprintln!("I was not able to create a SymbolCommon from a Symbol Node?"); return None}
-            }
+            };
             // Based on the symbol type I create (and add to the bag) different symbols
             if basic_symbol.symbol_type == "2"{
                 // Linear Symbol
-                let linear_symbol_option = linear::LinearSymbol::symbol_from_a_node(&basic_symbol, child);
-                let linear_symbol;
-                match linear_symbol_option{
-                    Some(a_linear_symbol) => {linear_symbol = a_linear_symbol;}
+                let linear_symbol = match linear::LinearSymbol::symbol_from_a_node(&basic_symbol, child){
+                    Some(a_linear_symbol) => a_linear_symbol,
                     None => {eprintln!("I was not able to create a LinearSymbol from a Symbol Node. [name = {}, type = {}]", basic_symbol.name.clone(), basic_symbol.symbol_type.clone()); return None}
-                }
+                };
                 bag.insert(linear_symbol.get_id(), linear_symbol);
             }else if basic_symbol.symbol_type == "4" || basic_symbol.symbol_type == "16" {
                 // Area Symbol
-                let area_symbol_option = area::AreaSymbol::symbol_from_a_node(&basic_symbol, child);
-                let area_symbol;
-                match area_symbol_option{
-                    Some(an_area_symbol) => {area_symbol = an_area_symbol;}
+                let area_symbol = match area::AreaSymbol::symbol_from_a_node(&basic_symbol, child){
+                    Some(an_area_symbol) => an_area_symbol,
                     None => {eprintln!("I was not able to create a AreaSymbol from a Symbol Node. [name = {}, type = {}]", basic_symbol.name.clone(), basic_symbol.symbol_type.clone()); return None}
-                }
+                };
                 bag.insert(area_symbol.get_id(), area_symbol);
             }else if basic_symbol.symbol_type == "1" {
                 // Punctual Symbol
-                let punctual_symbol_option = punctual::PunctualSymbol::symbol_from_a_node(&basic_symbol, child);
-                let punctual_symbol;
-                match punctual_symbol_option{
-                    Some(a_punctual_symbol) => {punctual_symbol = a_punctual_symbol;}
+                let punctual_symbol = match punctual::PunctualSymbol::symbol_from_a_node(&basic_symbol, child){
+                    Some(a_punctual_symbol) => a_punctual_symbol,
                     None => {eprintln!("I was not able to create a PunctualSymbol from a Symbol Node. [name = {}, type = {}]", basic_symbol.name.clone(), basic_symbol.symbol_type.clone()); return None}
-                }
+                };
                 bag.insert(punctual_symbol.get_id(), punctual_symbol);
             }else if basic_symbol.symbol_type == "8" {
                 // Text Symbol
-                let text_symbol_option = text::TextSymbol::symbol_from_a_node(&basic_symbol, child);
-                let text_symbol;
-                match text_symbol_option{
-                    Some(a_text_symbol) => {text_symbol = a_text_symbol;}
+                let text_symbol = match text::TextSymbol::symbol_from_a_node(&basic_symbol, child){
+                    Some(a_text_symbol) => a_text_symbol,
                     None => {eprintln!("I was not able to create a TextSymbol from a Symbol Node. [name = {}, type = {}]", basic_symbol.name.clone(), basic_symbol.symbol_type.clone()); return None}
-                }
+                };
                 bag.insert(text_symbol.get_id(), text_symbol);
             }else{
                 eprintln!("Find out a strange type for symbol ({}) [type={}]", basic_symbol.name, basic_symbol.symbol_type);

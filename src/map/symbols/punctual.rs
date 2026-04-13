@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use crate::map::elements::PointNode;
 use crate::map::symbols::{Symbol, SymbolCommon};
-use crate::map::symbols::geometric_shape::{Ring, GeometricShape, Circle, Line, from_number_to_vec_of_nodes};
+use crate::map::symbols::geometric_shape::{Ring, GeometricShape, Circle, Line, Area, from_number_to_vec_of_nodes};
 use crate::map_file::reading::Node;
 
 pub struct PunctualSymbol{
@@ -38,12 +38,10 @@ impl PunctualSymbol{
                 eprintln!("In a point symbol there was a child named {} that I was not expecting, continuing...", child.name);
                 continue;
             }
-            let symbol_option = child.search_child_by_name("symbol");
-            let symbol_node: Rc<Node>;
-            match symbol_option{
-                Some(a_node) => {symbol_node = a_node}
+            let symbol_node = match child.search_child_by_name("symbol"){
+                Some(a_node) => a_node,
                 None => {println!("I was not able to fine the 'symbol' child in this element: {}", child); return None}
-            }
+            };
             let object_node = child.search_child_by_name("object").unwrap();
             let coordinate_str_node = object_node.search_child_by_name("coords").unwrap();
             let inner_text_str = coordinate_str_node.inner_text.borrow().clone().unwrap();
@@ -55,36 +53,29 @@ impl PunctualSymbol{
                 }
             }
 
-            let basic_geometric_symbol_option = SymbolCommon::new_from_node(&symbol_node);
-            let basic_geometric_symbol;
-            match basic_geometric_symbol_option{
-                Some(a) => {basic_geometric_symbol = a}
+            let basic_geometric_symbol = match SymbolCommon::new_from_node(&symbol_node){
+                Some(a_basic_geometric_symbol) => a_basic_geometric_symbol,
                 None => {eprintln!("I was not able to build a SymbolCommon from \n{}!", symbol_node); return None}
-            }
+            };
             if basic_geometric_symbol.symbol_type == "2"{
-                let inner_linear_symbol_option = symbol_node.search_child_by_name("line_symbol");
-                let inner_linear_symbol_node: Rc<Node>;
-                match inner_linear_symbol_option{
-                    Some(a_node) => {inner_linear_symbol_node = a_node}
+                // Line
+                let inner_linear_symbol_node = match symbol_node.search_child_by_name("line_symbol"){
+                    Some(a_node) => a_node,
                     None => {eprintln!("Inside an element of type {} I cannot find a line_symbol?!", basic_geometric_symbol.symbol_type); return None}
-                }
-                let color_option = inner_linear_symbol_node.search_attribute_by_name("color");
-                let color: u32;
-                match color_option {
+                };
+                let color = match inner_linear_symbol_node.search_attribute_by_name("color") {
                     Some(a_color) => {
                         if a_color.parse::<i32>().unwrap() < 0 {
                             continue;
                         }
-                        color = a_color.parse::<u32>().unwrap();
+                        a_color.parse::<u32>().unwrap()
                     }
                     None => {println!("I was not able to fine the attribute 'color' in a line_symbol?"); return None}
-                }
-                let line_width_option = inner_linear_symbol_node.search_attribute_by_name("line_width");
-                let line_width: u32;
-                match line_width_option {
-                    Some(a_line_width) => {line_width = a_line_width.parse().unwrap();}
+                };
+                let line_width = match inner_linear_symbol_node.search_attribute_by_name("line_width") {
+                    Some(a_line_width) => a_line_width.parse().unwrap(),
                     None => {println!("I was not able to fine the attribute 'line_width' in a line_symbol?"); return None}
-                }
+                };
 
                 // Missing much more attributes...
 
@@ -95,21 +86,37 @@ impl PunctualSymbol{
                     nodes,
                 };
                 geometric_shapes.push(Rc::new(linear_symbol));
-            }else if basic_geometric_symbol.symbol_type == "4" || basic_symbol.symbol_type == "16" {
+            }else if basic_geometric_symbol.symbol_type == "4" || basic_geometric_symbol.symbol_type == "16" {
+                let inner_area_symbol_node = match symbol_node.search_child_by_name("area_symbol"){
+                    Some(a_node) => a_node,
+                    None => {eprintln!("Inside an element of type {} I cannot find an area_symbol?!", basic_geometric_symbol.symbol_type); return None}
+                };
+                let color = match inner_area_symbol_node.search_attribute_by_name("inner_color"){
+                    Some(a_color) => {
+                        if a_color.parse::<i32>().unwrap() < 0 {
+                            continue;
+                        }
+                        a_color.parse::<u32>().unwrap()
+                    }
+                    None => {println!("I was not able to fine the attribute 'inner_color' in an area_symbol?"); return None}
+                };
 
-                //geometric_shapes.push(Box::new(area_symbol));
+                let nodes = from_number_to_vec_of_nodes(coordinates);
+                let area_symbol = Area{
+                    color,
+                    nodes,
+                };
+                geometric_shapes.push(Rc::new(area_symbol));
             }else if basic_geometric_symbol.symbol_type == "1" {
                 // Point Symbol
                 assert_eq!(coordinates.len(), 1);
                 assert!(!coordinates[0].bayesian);
                 let x = coordinates[0].x;
                 let y = coordinates[0].y;
-                let inner_point_symbol_option = symbol_node.search_child_by_name("point_symbol");
-                let inner_point_symbol_node: Rc<Node>;
-                match inner_point_symbol_option{
-                    Some(a_node) => {inner_point_symbol_node = a_node}
+                let inner_point_symbol_node = match symbol_node.search_child_by_name("point_symbol"){
+                    Some(a_node) => a_node,
                     None => {eprintln!("Inside an element of type {} I cannot find a point_symbol?!", basic_geometric_symbol.symbol_type); return None}
-                }
+                };
                 let (ring_option, circle_option) = from_point_symbol_node_to_circle_ring(inner_point_symbol_node.clone(), x, y);
                 if ring_option.is_some(){
                     geometric_shapes.push(Rc::new(ring_option.unwrap()));

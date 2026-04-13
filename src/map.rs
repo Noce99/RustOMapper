@@ -6,6 +6,8 @@ use crate::map::symbols::geometric_shape::GeometricShapesBag;
 
 use prettytable::Table;
 use std::time::Instant;
+use std::fs::File;
+use std::io::Write;
 
 pub mod symbols;
 pub mod colors;
@@ -21,7 +23,7 @@ pub struct Map{
 }
 
 impl Map {
-    pub fn new(file_path: &str) -> Option<Map> {
+    pub fn new(file_path: &str, create_txt_file_from_node: bool) -> Option<Map> {
         let mut map_creation_stats_table = Table::new();
         map_creation_stats_table.set_titles(row![iH2->file_path]);
         map_creation_stats_table.add_row(row![c->"Work", c->"Time Needed (s)"]);
@@ -41,6 +43,10 @@ impl Map {
             c->"XML Parsing",
             bc->stop_timer_and_get_formatted_time(start_time, &mut total_time),
         ]);
+        if create_txt_file_from_node{
+            let mut file = File::create("node_log.txt").unwrap();
+            write!(file, "{}", node).unwrap();
+        }
 
         // We get the COLORS
         let start_time = Instant::now();

@@ -119,6 +119,7 @@ impl GeometricShape for Line{
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Area{
     pub color: u32,
+    pub nodes: Vec<Node>,
 }
 
 impl GeometricShape for Area{
@@ -128,8 +129,35 @@ impl GeometricShape for Area{
     // fn get_type(&self) -> &str{
     //     "area"
     // }
-    fn move_by(& self, _x: i64, _y: i64) -> Rc<dyn GeometricShape>{
-        Rc::new(self.clone())
+    fn move_by(& self, x: i64, y: i64) -> Rc<dyn GeometricShape>{
+        let mut to_return = self.clone();
+        for i in 0..to_return.nodes.len() {
+            to_return.nodes[i].point.x += x;
+            to_return.nodes[i].point.y += y;
+            match & to_return.nodes[i].left_branch{
+                Some(left_branch) => {
+                    to_return.nodes[i].left_branch = Some(
+                        Point{
+                            x: left_branch.x + x,
+                            y: left_branch.y + y,
+                        }
+                    )
+                }
+                None => {}
+            }
+            match & to_return.nodes[i].right_branch{
+                Some(right_branch) => {
+                    to_return.nodes[i].right_branch = Some(
+                        Point{
+                            x: right_branch.x + x,
+                            y: right_branch.y + y,
+                        }
+                    )
+                }
+                None => {}
+            }
+        }
+        Rc::new(to_return)
     }
     // fn clone_rc(&self) -> Rc<dyn GeometricShape>{
     //     Rc::new(self.clone())
