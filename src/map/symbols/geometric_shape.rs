@@ -245,11 +245,18 @@ impl GeometricShapesBag{
                                 max_color_id = new_geometric_shape.get_color();
                             }
                             bag.push(new_geometric_shape)
-                        }/*elif a_symbol.get_symbol_type() == "linear"{
+                        // }elif a_symbol.get_symbol_type() == "linear"{
 
-                        }elif a_symbol.get_symbol_type() == "area"{
-                        
-                        }*/
+                        }else if a_symbol.get_symbol_type() == "area"{
+                            let an_area = Area{
+                                color: geometric_shape.get_color(),
+                                nodes: from_number_to_vec_of_nodes(element.coordinates.clone()),
+                            };
+                            if geometric_shape.get_color() > max_color_id{
+                                max_color_id = geometric_shape.get_color();
+                            }
+                            bag.push(Rc::new(an_area));
+                        }
                     }
                 }
                 None => {}

@@ -102,13 +102,15 @@ impl SymbolsBag {
                     None => {eprintln!("I was not able to create a LinearSymbol from a Symbol Node. [name = {}, type = {}]", basic_symbol.name.clone(), basic_symbol.symbol_type.clone()); return None}
                 };
                 bag.insert(linear_symbol.get_id(), linear_symbol);
-            }else if basic_symbol.symbol_type == "4" || basic_symbol.symbol_type == "16" {
+            }else if basic_symbol.symbol_type == "4" {
                 // Area Symbol
                 let area_symbol = match area::AreaSymbol::symbol_from_a_node(&basic_symbol, child){
                     Some(an_area_symbol) => an_area_symbol,
                     None => {eprintln!("I was not able to create a AreaSymbol from a Symbol Node. [name = {}, type = {}]", basic_symbol.name.clone(), basic_symbol.symbol_type.clone()); return None}
                 };
                 bag.insert(area_symbol.get_id(), area_symbol);
+            }else if basic_symbol.symbol_type == "16" {
+                // Combined Symbol
             }else if basic_symbol.symbol_type == "1" {
                 // Punctual Symbol
                 let punctual_symbol = match punctual::PunctualSymbol::symbol_from_a_node(&basic_symbol, child){
