@@ -10,6 +10,7 @@ pub mod linear;
 pub mod area;
 pub mod text;
 pub mod geometric_shape;
+pub mod svg;
 
 #[derive(Debug)]
 pub struct SymbolCommon{

@@ -10,6 +10,12 @@ pub struct Color {
     pub b:  u8,
 }
 
+impl Color{
+    pub fn get_string_rgb(&self) -> String {
+        format!("rgb({}, {}, {})", self.r, self.g, self.b)
+    }
+}
+
 pub struct ColorsBag {
     // There we are creating a Vector of Box.
     pub bag: Vec<Color>

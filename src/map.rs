@@ -3,6 +3,7 @@ use crate::map::symbols::SymbolsBag;
 use crate::map::elements::ElementsBag;
 use crate::map_file::reading::Node;
 use crate::map::symbols::geometric_shape::GeometricShapesBag;
+use crate::map::symbols::svg::MapSVG;
 
 use prettytable::Table;
 use std::time::Instant;
@@ -20,6 +21,7 @@ pub struct Map{
     pub elements: ElementsBag,
     // pub map_node: Rc<Node>,
     pub geometric_shapes: GeometricShapesBag,
+    pub map_svg: MapSVG,
 }
 
 impl Map {
@@ -82,7 +84,8 @@ impl Map {
         // We get the elements
         let start_time = Instant::now();
         let parts = map_node.search_child_by_name("parts").unwrap();
-        let elements = ElementsBag::elements_from_parts(parts);
+        let mut elements = ElementsBag::elements_from_parts(parts);
+        elements.normalize_origin();
         map_creation_stats_table.add_row(row![
             c->"Elements Bag Creation",
             bc->stop_timer_and_get_formatted_time(start_time, &mut total_time),
@@ -93,6 +96,14 @@ impl Map {
         let geometric_shapes = GeometricShapesBag::from_elements_bag(&elements, &symbols);
         map_creation_stats_table.add_row(row![
             c->"Geometric Shapes Bag Creation",
+            bc->stop_timer_and_get_formatted_time(start_time, &mut total_time),
+        ]);
+
+        // We build the SVG
+        let start_time = Instant::now();
+        let map_svg = MapSVG::from_elements_and_symbols(&elements, &symbols, &colors);
+        map_creation_stats_table.add_row(row![
+            c->"SVG Creation",
             bc->stop_timer_and_get_formatted_time(start_time, &mut total_time),
         ]);
 
@@ -109,7 +120,8 @@ impl Map {
             symbols,
             elements,
             // map_node,
-            geometric_shapes
+            geometric_shapes,
+            map_svg
         })
     }
 }
