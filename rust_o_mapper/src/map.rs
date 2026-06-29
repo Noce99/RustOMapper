@@ -1,3 +1,18 @@
+//! This file contains:
+//! 1) Definition and Implementation of the Map Struct
+//! 2) Definition of the format_micros function
+//! 3) Definition of the stop_timer_and_get_formatted_time function
+
+//! It publishes 4 modules:
+//! 1) symbols -> 
+//! 2) colors ->
+//! 3) yaml_encoding -> 
+//! 4) elements -> 
+use prettytable::Table;
+use std::time::Instant;
+use std::fs::File;
+use std::io::Write;
+
 use crate::map::colors::ColorsBag;
 use crate::map::symbols::SymbolsBag;
 use crate::map::elements::ElementsBag;
@@ -5,22 +20,22 @@ use crate::map_file::reading::Node;
 use crate::map::symbols::geometric_shape::GeometricShapesBag;
 use crate::map::symbols::svg::MapSVG;
 
-use prettytable::Table;
-use std::time::Instant;
-use std::fs::File;
-use std::io::Write;
-
 pub mod symbols;
 pub mod colors;
 pub mod yaml_encoding;
 pub mod elements;
 
+/// This struct represent the RAM representation of an .omap file
 pub struct Map{
+    // All the colors defined in the .omap file
     pub colors: ColorsBag,
+    // All the sybols defined in the .omap file
     pub symbols: SymbolsBag,
+    // All the actual object that create the map in the .omap file
     pub elements: ElementsBag,
-    // pub map_node: Rc<Node>,
+    // The map contained in the .omap file as a list of simple geometric shapes
     pub geometric_shapes: GeometricShapesBag,
+    // The map contained in the .omap file as SVG file
     pub map_svg: MapSVG,
 }
 

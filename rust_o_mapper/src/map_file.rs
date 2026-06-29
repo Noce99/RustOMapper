@@ -1,6 +1,7 @@
 //! This file contains:
 //! 1) Definition and implementation of a MapFile struct.
-//! It publish 2 modules:
+
+//! It publishes 2 modules:
 //! 1) reading -> Used to parse a .omap file to a RAM reppresentation
 //! 2) writing -> Used to write a .omap file from a RAM reppresentation [!TODO]
 //! 3) map_finder -> Used to search for .omap file in a recursive way in the filesystem
@@ -113,7 +114,7 @@ pub mod map_finder {
     }
 
     /// This function given a Path search recursivelly for .omap file in that path
-    fn search_for_omap_in_subtree(root : &PathBuf) -> Vec<MapFile>{
+    pub fn search_for_omap_in_subtree(root : &PathBuf) -> Vec<MapFile>{
         let mut map_files: Vec<MapFile> = Vec::new();
 
         let root_path = match &root.to_str(){
