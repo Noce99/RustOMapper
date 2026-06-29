@@ -5,8 +5,8 @@ use std::string::ToString;
 use tungstenite::accept;
 use serde_json;
 use serde::{Deserialize, Serialize};
-use crate::map_file::MapFile;
-use crate::map::yaml_encoding::map_to_yaml;
+use rust_o_mapper::map_file::MapFile;
+use rust_o_mapper::map::yaml_encoding::map_to_yaml;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Request {

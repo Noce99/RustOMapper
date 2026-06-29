@@ -3,7 +3,7 @@
 //! 2) An helper function to get all the maps in the hardcoded "Maps" folder.
 //! It publish 2 modules:
 //! 1) reading -> Used to parse a .omap file to a RAM reppresentation
-//! 2) writing -> Used to write a .omap file [!TODO]
+//! 2) writing -> Used to write a .omap file from a RAM reppresentation [!TODO]
 
 use crate::map::Map;
 
@@ -12,8 +12,8 @@ pub mod writing;
 
 /// This struct represent a .omap file.
 /// It can be in two differents states:
-/// 1) Non yet parse map file (map is None)
-/// 2) Parse map file (map contains the map RAM reppresentation)
+/// 1) Non yet parsed map file (map is None)
+/// 2) Parsed map file (map contains the map RAM reppresentation)
 pub struct MapFile {
     /// The absolute path to a .omap file
     pub path: String,
@@ -26,10 +26,22 @@ impl MapFile {
     pub fn new(path: String) -> MapFile {
         MapFile { path, map: None }
     }
+    /// Given a path it created a parsed MapFile instance
+    pub fn new_and_load(path: String) -> MapFile {
+        let map = Map::new(&path, true);
+        MapFile { path, map}
+    }
+    /// In read data from the disk and create a RAM reppresentation of the map
+    /// If the map was already parsed, it will do nothing.
+    pub fn load(&mut self) {
+        if self.map.is_none() {
+            self.map = Map::new(self.path.as_str(), true)
+        }
+    }
     /// In read data from the disk and create a RAM reppresentation of the map
     /// If the map was already parsed, it parses it again.
-    pub fn load(&mut self) {
-        self.map = Map::new(self.path.as_str(), true);
+    pub fn load_force(&mut self) {
+        self.map = Map::new(self.path.as_str(), true)
     }
 }
 
@@ -168,6 +180,9 @@ pub mod map_finder {
             fs::create_dir(&tmp_dir_path).expect("Not possible to create tmp dir, aborting the test!");
             let mut gt_maps_path = create_random_subtree(&tmp_dir_path, 0.0);
             let mut maps_path = search_for_omap_in_subtree(&tmp_dir_path);
+            if fs::remove_dir_all(tmp_dir_path).is_err(){
+                println!("Failed to delete the tmp folder that I created! :-(");
+            }
             gt_maps_path.sort();
             maps_path.sort();
             println!("gt_maps_path:");
