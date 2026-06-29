@@ -1,9 +1,9 @@
 //! This file contains:
 //! 1) Definition and implementation of a MapFile struct.
-//! 2) An helper function to get all the maps in the hardcoded "Maps" folder.
 //! It publish 2 modules:
 //! 1) reading -> Used to parse a .omap file to a RAM reppresentation
 //! 2) writing -> Used to write a .omap file from a RAM reppresentation [!TODO]
+//! 3) map_finder -> Used to search for .omap file in a recursive way in the filesystem
 
 use std::{path::PathBuf, fmt};
 
@@ -98,6 +98,9 @@ impl fmt::Debug for MapFile {
 }
 
 pub mod map_finder {
+    //! This module contains:
+    //! 1) get_map_paths -> A function to get all the maps in the hardcoded "Map" folder
+    //! 2) search_for_omap_in_subtree -> A generic function for search .omap file recursivelly in the filesystem
     use crate::map_file::MapFile;
     use std::{env, fs, path::PathBuf};
 
