@@ -1,4 +1,5 @@
 use std::env;
+use std::path::PathBuf;
 use std::net::TcpListener;
 use std::process::exit;
 use std::string::ToString;
@@ -17,7 +18,7 @@ struct Request {
 #[derive(Debug, Serialize, Deserialize)]
 struct PathsResponse {
     response_type: String,
-    paths: Vec<String>,
+    paths: Vec<PathBuf>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -144,7 +145,7 @@ impl WebSocketServer {
         response = Ok(serde_json::to_string_pretty(&a_response).unwrap());
         match incoming.request.as_str() {
             "get_maps_path" => {
-                let mut paths :Vec<String> = Vec::new();
+                let mut paths :Vec<PathBuf> = Vec::new();
                 for map in &self.maps{
                     paths.push(map.path.clone());
                 }

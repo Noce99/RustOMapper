@@ -5,6 +5,8 @@
 //! 1) reading -> Used to parse a .omap file to a RAM reppresentation
 //! 2) writing -> Used to write a .omap file from a RAM reppresentation [!TODO]
 
+use std::{path::PathBuf, fmt};
+
 use crate::map::Map;
 
 pub mod reading;
@@ -16,35 +18,84 @@ pub mod writing;
 /// 2) Parsed map file (map contains the map RAM reppresentation)
 pub struct MapFile {
     /// The absolute path to a .omap file
-    pub path: String,
+    pub path: PathBuf,
     /// If the map was already parsed it contains the map RAM reppresentation otherwise None
     pub map: Option<Map>,
 }
 
 impl MapFile {
     /// Given a path it creates a NON parsed MapFile instance
-    pub fn new(path: String) -> MapFile {
+    pub fn new(path: PathBuf) -> MapFile {
         MapFile { path, map: None }
     }
     /// Given a path it created a parsed MapFile instance
-    pub fn new_and_load(path: String) -> MapFile {
-        let map = Map::new(&path, true);
-        MapFile { path, map}
+    pub fn new_and_load(path: PathBuf) -> MapFile {
+        match path.to_str(){
+            Some(a_path) => {
+                let map = Map::new(a_path, true);
+                return MapFile { path, map}
+            },
+            None => {
+                eprint!("Skipping to load a MapFile with a non UTF-8 valid path.");
+                return MapFile { path, map: None}
+            }
+        };
     }
     /// In read data from the disk and create a RAM reppresentation of the map
     /// If the map was already parsed, it will do nothing.
     pub fn load(&mut self) {
         if self.map.is_none() {
-            self.map = Map::new(self.path.as_str(), true)
+            self.map = match self.path.to_str(){
+                Some(a_path) => Map::new(a_path, true),
+                None => None
+            }
         }
     }
     /// In read data from the disk and create a RAM reppresentation of the map
     /// If the map was already parsed, it parses it again.
     pub fn load_force(&mut self) {
-        self.map = Map::new(self.path.as_str(), true)
+        self.map = match self.path.to_str(){
+            Some(a_path) => Map::new(a_path, true),
+            None => None
+        }
     }
 }
 
+impl PartialEq for MapFile {
+    /// This implementation is used for checking when two instance of MapFile are equal.
+    /// For now they are equal if its path is equal.
+    fn eq(&self, other: &Self) -> bool{
+        self.path == other.path
+    }
+}
+
+/// I need the following to let Rust know that my PartialEq implementation is Total.
+/// Total means that partial equation is defined for all values.
+impl Eq for MapFile {}
+
+/// Implementation needed for being able to use sort on Vec<MapFile>
+impl PartialOrd for MapFile {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+/// Implementation needed for being able to use sort on Vec<MapFile>
+impl Ord for MapFile {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.path.cmp(&other.path)
+    }
+}
+
+impl fmt::Debug for MapFile {
+    // This implementation avoid to put all the Map content in the Debug
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("MapFile")
+            .field("path", &self.path)
+            .field("loaded", &self.map.is_some())
+            .finish()
+    }
+}
 
 pub mod map_finder {
     use crate::map_file::MapFile;
@@ -53,30 +104,20 @@ pub mod map_finder {
     /// This function return a vector of MapFile istances for all the .omap file
     /// contained in the Maps folder (sibling of src folder).
     pub fn get_map_paths() -> Vec<MapFile>{
-        let mut maps_path: Vec<MapFile> = Vec::new();
         let mut current_dir = env::current_dir().expect("Failed to get current directory! WTF!");
         current_dir.push(r"Maps");
-        if let Ok(entries) = fs::read_dir(current_dir) {
-            for entry in entries.filter_map(Result::ok) {
-                if entry.file_type().map(|ft| ft.is_file()).unwrap_or(false) {
-                    let path_string = entry.path().to_str().unwrap().to_string();
-                    if path_string.ends_with(".omap") {
-                        maps_path.push(MapFile::new(String::from(path_string)));
-                    }
-                }
-            }
-        }
-        maps_path
+        search_for_omap_in_subtree(&current_dir)
     }
 
-    fn search_for_omap_in_subtree(root : &PathBuf) -> Vec<PathBuf>{
-        let mut maps_path: Vec<PathBuf> = Vec::new();
+    /// This function given a Path search recursivelly for .omap file in that path
+    fn search_for_omap_in_subtree(root : &PathBuf) -> Vec<MapFile>{
+        let mut map_files: Vec<MapFile> = Vec::new();
 
         let root_path = match &root.to_str(){
             Some(a_path) => a_path.to_string(),
             None => {
                 eprintln!("Path it's not UTF-8 valid.");
-                return maps_path;
+                return map_files;
             }
         };
         match fs::read_dir(root) {
@@ -99,10 +140,10 @@ pub mod map_finder {
                                 },
                             };
                             if file_type.is_dir(){
-                                maps_path.extend(search_for_omap_in_subtree(&entry.path()));
+                                map_files.extend(search_for_omap_in_subtree(&entry.path()));
                             }else if file_type.is_file() || file_type.is_symlink(){
                                 if entry_path.ends_with(".omap"){
-                                    maps_path.push(entry.path());
+                                    map_files.push(MapFile::new(entry.path()));
                                 }
                             }else{
                                 eprintln!("The following entry was either a folder, a file or a symbolic link.\n{}", entry_path);
@@ -117,10 +158,10 @@ pub mod map_finder {
             },
             Err(error) => {
                 eprintln!("Skipping to search on folder: {} because of:\n{}", root_path, error);
-               return maps_path;
+               return map_files;
             }
         }
-        maps_path
+        map_files
     }
 
     // TESTS
@@ -139,8 +180,8 @@ pub mod map_finder {
             name
         }
 
-        fn create_random_subtree(root : &PathBuf, probability_to_stop : f32) -> Vec<PathBuf>{
-            let mut maps_path : Vec::<PathBuf> = Vec::new();
+        fn create_random_subtree(root : &PathBuf, probability_to_stop : f32) -> Vec<MapFile>{
+            let mut map_files : Vec::<MapFile> = Vec::new();
             assert!(0. <= probability_to_stop && probability_to_stop <= 1.);
             if rand::random_range(0.0..=1.0) > probability_to_stop {
                 let number_of_subfolders = rand::random_range(1..=10);
@@ -150,7 +191,7 @@ pub mod map_finder {
                 for _ in 0..number_of_subfolders{
                     let sub_folder_path = root.join(create_a_random_name());
                     match fs::create_dir(&sub_folder_path){
-                        Ok(_) => maps_path.extend(
+                        Ok(_) => map_files.extend(
                             create_random_subtree(&sub_folder_path, probability_to_stop+(1.-probability_to_stop)*0.5)
                         ),
                         Err(error) => eprintln!("Error creating directory {}:\n{}", sub_folder_path.to_str().unwrap_or("non_utf_8_path"), error)
@@ -166,12 +207,12 @@ pub mod map_finder {
                 for _ in 0..number_of_map_files{
                     let omap_file_path = root.join(create_a_random_name() + ".omap");                    
                     match fs::write(&omap_file_path, ""){
-                        Ok(_) => maps_path.push(omap_file_path),
+                        Ok(_) => map_files.push(MapFile::new(omap_file_path)),
                         Err(error) => eprintln!("Error creating file {}:\n{}", omap_file_path.to_str().unwrap_or("non_utf_8_path"), error)
                     }; 
                 }
             }
-            maps_path
+            map_files
         }
 
         #[test]
@@ -187,11 +228,11 @@ pub mod map_finder {
             maps_path.sort();
             println!("gt_maps_path:");
             for element in &gt_maps_path{
-                println!("\t{}", element.to_str().unwrap());
+                println!("\t{}", element.path.to_str().unwrap());
             }
             println!("maps_path:");
             for element in &maps_path{
-                println!("\t{}", element.to_str().unwrap());
+                println!("\t{}", element.path.to_str().unwrap());
             }
             assert_eq!(gt_maps_path, maps_path);
         }
