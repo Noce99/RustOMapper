@@ -47,7 +47,7 @@ impl Map {
 
         let mut total_time : u64 = 0;
         let start_time = Instant::now();
-        
+        // 1) We read the .omap file
         let node = match Node::node_from_file(file_path){
             Some(node) => node,
             None => {eprintln!("I was not able to read the map located in {}", file_path);return None;}
