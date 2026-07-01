@@ -25,7 +25,7 @@ impl MapSVG{
                         if a_symbol.get_symbol_type() == "punctual"{
                             
                         }else if a_symbol.get_symbol_type() == "area"{
-                            let color: String = colors.bag[geometric_shape.get_color() as usize].get_string_rgb();
+                            let color: String = colors.colors[geometric_shape.get_color() as usize].get_string_rgb();
                             let nodes: Vec<super::geometric_shape::Node> = from_number_to_vec_of_nodes(element.coordinates.clone());
                             if nodes.len() >= 1{
                                 let mut data = Data::new().move_to((nodes[0].point.x, nodes[0].point.y));

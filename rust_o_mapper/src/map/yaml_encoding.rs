@@ -198,7 +198,7 @@ pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
         num: map.colors.len(),
         colors: Vec::new()
     };
-    for color in &map.colors.bag{
+    for color in &map.colors.colors{
         colors_yaml.colors.push(
             ColorYaml{
                 priority: color.priority,
