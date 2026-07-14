@@ -25,12 +25,11 @@ impl MapSVG{
                         if a_symbol.get_symbol_type() == "punctual"{
                             
                         }else if a_symbol.get_symbol_type() == "area"{
-                            let color: String = colors.colors[geometric_shape.get_color() as usize].get_string_rgb();
+                            let color: String = colors.colors[&geometric_shape.get_color()].get_string_rgb();
                             let nodes: Vec<super::geometric_shape::Node> = from_number_to_vec_of_nodes(element.coordinates.clone());
                             if nodes.len() >= 1{
                                 let mut data = Data::new().move_to((nodes[0].point.x, nodes[0].point.y));
                                 for i in 0..(nodes.len()-1){
-                                    println!("Inside!");
                                     if nodes[i].right_branch.as_ref().is_some() {
                                         assert!(nodes[i+1].left_branch.is_some(), "WTF, a Node with a NOT None right branch ad the consecutive node has a None left branch?");
                                         data = data.cubic_curve_to((

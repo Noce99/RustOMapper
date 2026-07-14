@@ -473,6 +473,10 @@
     }
 
     function drawArea(focus_x, focus_y, nodes, color_id){
+        if (!(color_id in colors.colors)) {
+            console.error(`drawArea: color_id ${color_id} not found in colors.colors`);
+            return;
+        }
         let color = colors.colors[color_id];
         let i = 1;
 

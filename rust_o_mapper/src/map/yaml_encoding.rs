@@ -24,7 +24,7 @@ struct MapYaml {
 #[derive(Serialize, Deserialize)]
 struct ColorsYaml {
     num: usize,
-    colors: Vec<ColorYaml>,
+    colors: HashMap<u32, ColorYaml>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -196,10 +196,11 @@ pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
     // COLORS
     let mut colors_yaml = ColorsYaml{
         num: map.colors.len(),
-        colors: Vec::new()
+        colors: HashMap::new()
     };
-    for color in &map.colors.colors{
-        colors_yaml.colors.push(
+    for (_, color) in &map.colors.colors{
+        colors_yaml.colors.insert(
+            color.priority,
             ColorYaml{
                 priority: color.priority,
                 name: color.name.clone(),
@@ -207,7 +208,7 @@ pub fn map_to_yaml(map: &Map) -> Result<String, Box<dyn std::error::Error>>  {
                 g:  color.g,
                 b:  color.b,
             }
-        )
+        );
     }
     // SYMBOLS
     let mut symbols_yaml = SymbolsYaml{

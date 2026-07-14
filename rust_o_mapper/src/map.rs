@@ -72,7 +72,7 @@ impl Map {
             None => {eprintln!("Not possible to find child named 'colors' in the current Node!"); return None}
         };
 
-        let colors = match ColorsBag::new(colors_node.clone()) {
+        let colors: ColorsBag = match ColorsBag::new(colors_node.clone()) {
             Some(a_colors) => a_colors,
             None => {eprintln!("Not able to create a ColorsBag from a colors Node!"); return None}
         };
